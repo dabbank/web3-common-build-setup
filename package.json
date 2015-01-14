@@ -5,7 +5,7 @@
     "author": "David Amend",
   	"license": "-",
 	"devDependencies" : {
-		"web3-common-build-dependencies": "git://github.com/dabbank/web3-common-build-dependencies#0.1.0"
+		"web3-common-build-dependencies": "git://github.com/dabbank/web3-common-build-dependencies#0.1.0",
 		"chromedriver": "2.10.0-1"
 	}
 }
