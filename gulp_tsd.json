@@ -1,0 +1,9 @@
+{
+    // TODO think about, if ts_definitions should be downloaded by every package
+    "command": "reinstall", // this plugin supports only "reinstall"
+    "latest": true,         // if this property is true, tsd always fetches HEAD definitions
+    "config": "tsd.json", // file path for configuration file (see below)
+    "opts": {
+        // options, EXPERIMENTAL
+    }
+}

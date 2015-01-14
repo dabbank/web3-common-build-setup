@@ -1,0 +1,11 @@
+{
+    "name": "web3-common-build-setup",
+    "version": "0.1.0",
+    "description": "common build setup files",
+    "author": "David Amend",
+  	"license": "-",
+	"devDependencies" : {
+		"web3-common-build-dependencies": "git://github.com/dabbank/web3-common-build-dependencies#0.1.0"
+		"chromedriver": "2.10.0-1"
+	}
+}
