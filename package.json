@@ -1,11 +1,23 @@
 {
     "name": "web3-common-build-setup",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "description": "common build setup files",
-    "author": "David Amend",
-  	"license": "-",
-	"devDependencies" : {
-		"web3-common-build-dependencies": "git://github.com/dabbank/web3-common-build-dependencies#0.1.0",
-		"chromedriver": "2.10.0-1"
-	}
+    "author": "David Amend <david.amend@dab.com",
+    "contributors": [{
+      "name": "Danny Winter",
+      "email": "danny.winter@dab.com"
+    }],
+    "license": "MIT",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/dabbank/web3-common-build-setup"
+    },
+    "bugs": {
+      "url": "https://github.com/dabbank/web3-common-build-setup/issues"
+    },
+    "main": "gulpfile.js",
+    "dependencies" : {
+      "web3-common-build-dependencies": "git://github.com/dabbank/web3-common-build-dependencies",
+      "chromedriver": "2.10.0-1"
+    }
 }
