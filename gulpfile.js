@@ -11,10 +11,10 @@
  * gulp --gulpfile mygulpfile.js
  */
 
-module.exports = function (gulp, CONFIG) {
+var initGulp = function (gulp, CONFIG) {
 
     if (!CONFIG) {
-        CONFIG = require(".//Build_Config");
+        CONFIG = require("./build_config.js");
     }
 
     var plugins = {};
@@ -70,8 +70,10 @@ module.exports = function (gulp, CONFIG) {
         // TODO move
         // Obsolete ( and wrong path), instead webserver links to bower_components direct
         gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
-            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "/css/fonts/"))
-        //    .pipe(gulp.dest(CONFIG.DAB_CQ.DEV.CSS.FOLDER() + "/fonts/"));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css/fonts/"));
+
+	    gulp.src(CONFIG.SRC.THIRDPARTY.CSS())
+	        .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css/"));
 
         console.log("Successful processed.");
     });
@@ -117,7 +119,7 @@ module.exports = function (gulp, CONFIG) {
     });
 
     gulp.task("js-app", function () {
-        gulp.src(CONFIG.SRC.TS.FILES())
+        gulp.src(CONFIG.SRC.JS.FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.APP()))
             .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
@@ -153,7 +155,7 @@ module.exports = function (gulp, CONFIG) {
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()))
             // TODO distinguish between prod and not
-            .pipe(gulp.dest(CONFIG.DAB_CQ.DIST.CURRENT_MODULE()));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
     gulp.task("echo", function(){
@@ -196,12 +198,9 @@ module.exports = function (gulp, CONFIG) {
                 {
                     allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(), 
-                    // tmpDir : "./ts_tmp",
                     sourcemap: true,
                     sourceRoot: "/",
                     target: "ES5"
-                    //noLib: false
-                    , tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()))
     });
@@ -213,13 +212,12 @@ module.exports = function (gulp, CONFIG) {
             .pipe(plugins.tsc(
                 {
                     allowBool: true,
-                    out: "tests.js",//CONFIG.FOLDER.JS(), //"js",//
+                    out: "tests.js",
                     // tmpDir : "./ts_tmp",
                     sourcemap: true,
                     sourceRoot: "/",
                     target: "ES5",
                     //noLib: false
-                    tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
     });
@@ -239,10 +237,9 @@ module.exports = function (gulp, CONFIG) {
                     sourceRoot: null,
                     target: "ES3"
                     //noLib: false
-                    , tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(plugins.ngAnnotate())
-            .pipe(gulp.dest(CONFIG.DAB_CQ.DIST.CURRENT_MODULE()));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
     /**
@@ -287,7 +284,7 @@ module.exports = function (gulp, CONFIG) {
 
     // TODO used for CI and other browsers, atm chromeOnly mode is used to be fast
     gulp.task("seleniumServer", function () {
-        var webdriverPath = CONFIG.FOLDER.DAB_WEBDEV() + "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
+        var webdriverPath = "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
         var command = "java -jar " + CONFIG.DEV.ABSOLUTE_FOLDER() + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
         exec(command, function (status, output) {
             console.log("Exit status:", status);
@@ -298,7 +295,6 @@ module.exports = function (gulp, CONFIG) {
     gulp.task('ngdocs', [], function () {
         plugins.ngdocs = require("gulp-ngdocs");
         var options = {
-//            scripts: ['../app.min.js'],
             html5Mode: true,
             startPage: '/api',
             title: "My Awesome Docs",
@@ -311,36 +307,12 @@ module.exports = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.CI.DOCS_FOLDER()));
     });
 
-
-//gulp.task("setup", function (cb) {
-//    var bower = require("node_modules/bower/bin/bower");
-//    bower();
-//});
-
-//    gulp.task("statistics", function (cb) {
-//        gulp.run("uncss");
-////    gulp.run("grunt-phantomas");
-//    });
-
-    //gulp.task("lint", function () {
-    //    require("gulp-jshint");
-    //    return gulp.src(CONFIG.SRC.TS.FILES())
-    //        .pipe(plugins.jshint())
-    //        .pipe(plugins.jshint.reporter("default"));
-    //});
-
-    //gulp.task("dgeni", function () {
-    //    // TODO dgeni not full setup
-    //    npms.dgeni = npms.dgeni || require("dgeni");
-    //
-    //    var dgeniInstance = new dgeni([require("./docs.config.js")]);
-    //    dgeniInstance.generate().catch(function(error) {
-    //        process.exit(1);
-    //    });
-    //});
-
     return gulp;
 };
+
+module.exports.initGulp = initGulp;
+module.exports.depsFolder = __dirname + '/node_modules/';
+module.exports.buildConfig = require('./build_config.js');
 
 
 

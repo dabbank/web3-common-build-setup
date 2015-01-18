@@ -1,26 +1,14 @@
 // http://stackoverflow.com/questions/22741686/publishing-a-bower-package-with-bower
 // http://www.frontendjunkie.com/2014/01/using-bower-as-package-management-tool.html
 
-// TODO exclude . copy target file to this folder
-var DAB_CQ = "../../../../dab-cq/xsl/dabbank/";
-var DAB_WEBDEV = "C:\\seu\\svn\\dab-enterprise\\branches\\angulartemplate\\dab-portal\\dab-web\\";
-var CUSTOM_TYPESCRIPT_COMPILER = "";//"C:\\dev\\svn\\web3\\dab-enterprise\\branches\\angulartemplate\\dab-portal\\dab-web\\node_modules\\typescript\\";
 
 var _ = require('lodash');
 var path = require('path');
-
 var module_dependency_utils = require('./module_dependency_utils');
 
-// TODO remove dab specific variables
-var DAB_CQ_CSS = DAB_CQ + "css/";
-var DAB_CQ_SCRIPTS_DISTRIB = DAB_CQ + "scripts_distributable/";
-var DAB_CQ_WEB_FOLDER = "dab-web/";
-
-//'C:\\dev\\daamenda\\AppData\\npm\\node_modules\\typescript';
 
 var bowerFolder = 'bower_components/';
-var bowerFolderPARENT = ''; // deprecated
-var commonSetupModule = "web3-common-build-setup";//"web3-common-build-setup";
+var commonSetupModule = "web3-common-build-setup";
 var bowerLibFilesToConcat = [
     'angular/angular.js',
     'angular-bootstrap/ui-bootstrap.js',
@@ -35,21 +23,12 @@ var bowerSingleLibFilesNoConcat = [
 ];
 var bowerSingleLibFilesNoConcat_DEV = toFullPath(bowerSingleLibFilesNoConcat, bowerFolder);
 
-// TODO Deprecated
-// CONFIG.DEV.STANDALONE_FOLDER(),
-//            CONFIG.SRC.SASS_TARGET_FOLDER(),
-//            CONFIG.SRC.THIRDPARTY.FONTS_FOLDER()
-
 var CONFIG = {
     FOLDER: {
-        JS: _.constant(""), // TODO deprecated
-        CSS: _.constant("css/"),
-        SASS : _.constant("sass/"),
-        SRC : _.constant("src/"),
-        TMP : _.constant("tmp/"),
-        // default TODO refactor to environmentConfig
-        GLOBAL_MODULE : _.constant("dab-bootstrap-component/"),
-		DAB_WEBDEV : _.constant(DAB_WEBDEV)
+        CSS: _.constant("./css/"),
+        SASS : _.constant("./sass/"),
+        SRC : _.constant("./src/"),
+        TMP : _.constant("./tmp/"),
     },
     DYNAMIC_META : {
         MODULE_NAME : module_dependency_utils.getCurrentModuleName
@@ -63,16 +42,16 @@ var CONFIG = {
         },
         JS: {
             LIBS: _.constant(bowerLibFilesToConcat_DEV),
-            SINGLE_LIBS: _.constant(bowerSingleLibFilesNoConcat_DEV)
+            SINGLE_LIBS: _.constant(bowerSingleLibFilesNoConcat_DEV),
+            FILES: function() {
+		return CONFIG.FOLDER.SRC() + "**/*.js"; 
+	    }
         },
         TS: {
-            // TODO make src a variable
-            FILES: _.constant("src/**/*.js"), // TODO move to JS
             // Dynamically extended by devDependency components
             TS_FILES: function(){
-                return [//"bower_components/dab-bootstrap-component/src/**/*.ts",
-                    // TODO **/src to have common rules for all dynamic added modules
-                    "src/**/*.ts", "!" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES(),
+                return [
+                    CONFIG.FOLDER.SRC() + "**/*.ts", "!" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES(),
                     "node_modules/" + commonSetupModule + "/ts_definitions/reference.d.ts"
                 ];
             },
@@ -80,41 +59,46 @@ var CONFIG = {
             TS_UNIT_TEST_FILES : function(){
                 return [
                     "node_modules/" + commonSetupModule + "/ts_definitions/reference.d.ts",
-                    "src/" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES(),
-                    "src/**/*.d.ts"
+                    CONFIG.FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES(),
+                    CONFIG.FOLDER.SRC() + "**/*.d.ts"
                 ];
             },
             // TODO move to general files
             GLOBAL_TS_UNIT_TEST_FILES :_.constant("**/*Test.ts") // must be global in TS_FILES
         },
-        ANGULAR_HTMLS: _.constant("src/**/*.tpl.html"),
+        ANGULAR_HTMLS: function() {
+		    return CONFIG.FOLDER.SRC() + "**/*.tpl.html";
+	    },
         ALL_HTML_TEMPLATES : function(){
-            return [CONFIG.DEV.STANDALONE_FOLDER()+ "**/*.html", "src/**/*.html"];
+            return CONFIG.FOLDER.SRC() + "**/*.html";
         },
         THIRDPARTY: {
             FONTS : function(){
                 return CONFIG.SRC.THIRDPARTY.FONTS_FOLDER() + "fonts/**/*";
             },
             FONTS_FOLDER : _.constant(bowerFolder.concat("bootstrap-sass-official/assets/")),
-            CSS : _.constant(bowerFolderPARENT + bowerFolder)
+            CSS : function() {
+                return ['']; // override in project's build config, if you need 3rd party css
+            }
         },
-        ASSETS : _.constant('src/assets/**/*.js'),
+        ASSETS : function() {
+		return CONFIG.FOLDER.SRC() + "assets/**/*.js";
+	},
         SPRITES_IMG_BASE_FOLDER : function(){
             return CONFIG.FOLDER.SASS() + "sprites/img";
         },
         SASS_TARGET_FOLDER : function(){
-            return bowerFolderPARENT + bowerFolder + CONFIG.FOLDER.GLOBAL_MODULE() + CONFIG.FOLDER.SASS()+ CONFIG.DIST.FOLDER();
+            return CONFIG.DIST.FOLDER();
         }
     },
     DIST: {
-        FOLDER : _.constant('target/'),
+        FOLDER : _.constant('./target/'),
         FILES : function(){
             return CONFIG.DIST.FOLDER() + "**/*";
         },
-        //ASSETS_FOLDER: _.constant('target/assets/'),
         JS: {
             FOLDER: function () {
-                return CONFIG.DIST.FOLDER() + CONFIG.FOLDER.JS(); // TODO deprecated ?
+                return CONFIG.DIST.FOLDER(); 
             },
             FILES: {
                 LIBS: _.constant('libs.js'),
@@ -123,9 +107,9 @@ var CONFIG = {
             },
             HEAD_FILES: function () {
                 return [
-                    CONFIG.FOLDER.JS() + CONFIG.DIST.JS.FILES.LIBS(),
-                    CONFIG.FOLDER.JS() + CONFIG.DIST.JS.FILES.TEMPLATES(),
-                    CONFIG.FOLDER.JS() + CONFIG.DIST.JS.FILES.APP()
+                    CONFIG.DIST.JS.FILES.LIBS(),
+                    CONFIG.DIST.JS.FILES.TEMPLATES(),
+                    CONFIG.DIST.JS.FILES.APP()
                 ];
             }
         },
@@ -136,7 +120,7 @@ var CONFIG = {
         },
         CSS: {
             FOLDER: function () {
-                return CONFIG.FOLDER.SASS()+CONFIG.DIST.FOLDER() + "css/";
+                return CONFIG.FOLDER.SASS() + "target/css/";
             },
             CSS_MAIN: _.constant("main.css"),
             WATCH_FILES: function () {
@@ -151,7 +135,9 @@ var CONFIG = {
       DOCS_FOLDER : _.constant("./generated/docs")
     },
     PARTIALS: {
-        MAIN: _.constant('./src/frameContent.html')
+        MAIN: function() {
+		    return CONFIG.FOLDER.SRC() + "frameContent.html";
+	    }
     },
     DEV: {
 		WEBSERVER_BASE_ROOT_DIRS : function(){
@@ -162,14 +148,14 @@ var CONFIG = {
 		}
 		,
         HTML_MAIN: function(){
-            return CONFIG.DEV.STANDALONE_FOLDER() + "index.html";
+            return CONFIG.FOLDER.SRC() + "index.html";
         }
         ,
         ABSOLUTE_FOLDER: _.constant(path.resolve() + "\\"),
         CURRENT_APP: _.constant(path.basename()),
-        STANDALONE_FOLDER: function(){
-            return bowerFolder + CONFIG.FOLDER.GLOBAL_MODULE() +"portal_standalone/dev_standalone/";
-        },
+	STANDALONE_FOLDER: function() {
+		return CONFIG.DIST.FOLDER();
+	},
         UNIT_TESTS_JS_FOLDER :  function(){
             return CONFIG.FOLDER.TMP() + "tests/";
             }
@@ -177,24 +163,7 @@ var CONFIG = {
         // TODO refactor to folder
         UI_TEST_FILES : _.constant("./uiTests/**/*.js"),
         // TODO refactor
-        PROTRACTOR_CONFIG : _.constant("node_modules/web3-common-build-setup/protractor.config.js"),
-        CUSTOM_TYPESCRIPT_COMPILER : _.constant(CUSTOM_TYPESCRIPT_COMPILER)
-    },
-    DAB_CQ: {
-        DIST : {
-            CURRENT_MODULE : function(){
-                return DAB_CQ_SCRIPTS_DISTRIB + CONFIG.DAB_CQ.DIST.CURRENT_RELATIVE_MODULE();
-            },
-            CURRENT_RELATIVE_MODULE : function(){
-                return DAB_CQ_WEB_FOLDER + CONFIG.DYNAMIC_META.MODULE_NAME() + "/";
-            }
-        },
-
-        DEV: {
-            CSS: {
-                FOLDER: _.constant(DAB_CQ_CSS) // TODO rename and add
-            }
-        }
+        PROTRACTOR_CONFIG : _.constant("node_modules/" + commonSetupModule + "/protractor.config.js"),
     }
 };
 
