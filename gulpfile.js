@@ -169,7 +169,7 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     gulp.task("webserver", function () {
-		plugins.browserSync = plugins.browserSync || require("browser-sync");    
+		plugins.browserSync = plugins.browserSync || require("browser-sync");
 
 		
 
@@ -192,7 +192,7 @@ var initGulp = function (gulp, CONFIG) {
     // TODO refactor to dev:tscompile
     gulp.task("tscompile", function () {
         console.log(CONFIG.SRC.TS.TS_FILES());
-        gulp.src(CONFIG.SRC.TS.TS_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
@@ -207,7 +207,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("tscompiletests", function () {
         console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
-        gulp.src(CONFIG.SRC.TS.TS_UNIT_TEST_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
@@ -226,7 +226,7 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("prod:tscompile", function () {
         plugins.ngAnnotate = plugins.ngAnnotate || require("gulp-ng-annotate");
 
-        gulp.src(CONFIG.SRC.TS.TS_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
@@ -250,7 +250,7 @@ var initGulp = function (gulp, CONFIG) {
         npms.karma = npms.karma || require("karma").server; // TODO move server call to later
         npms.karma.start({
             // "/node_modules/web3-common-build-setup/"+
-            configFile: __dirname + "\\karma.conf.js",
+            configFile: CONFIG.DEV.KARMA_CONFIG(),
             // Override specific config from file
             singleRun: true
             //browsers: ["PhantomJS"]
@@ -284,8 +284,8 @@ var initGulp = function (gulp, CONFIG) {
 
     // TODO used for CI and other browsers, atm chromeOnly mode is used to be fast
     gulp.task("seleniumServer", function () {
-        var webdriverPath = "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
-        var command = "java -jar " + CONFIG.DEV.ABSOLUTE_FOLDER() + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
+        var webdriverPath = __dirname + "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
+        var command = "java -jar " + __dirname + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
         exec(command, function (status, output) {
             console.log("Exit status:", status);
             console.log("Program output:", output);
