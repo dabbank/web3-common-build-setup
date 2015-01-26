@@ -32,6 +32,8 @@ var initGulp = function (gulp, CONFIG) {
     plugins.changed = require("gulp-changed");
     plugins.watch = require("gulp-watch");
 
+    plugins.rename = require("gulp-rename");
+    plugins.sass = require("gulp-sass");
 
     var npms = {};
     var gulp_utils = require("./gulp_utils");
@@ -62,22 +64,23 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("default", ["dev"]);
     // "prod:jslibs", moved to global-libs
     gulp.task("prod:once", ["prod"]);
-    gulp.task("prod", ["prod:tscompile", "templates"]); // use prod only
+    gulp.task("prod", ["prod:init-app", "prod:tscompile", "templates"]); // use prod only
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "webserver", "watch"]);
     // "cleanTarget",
-    gulp.task("dev:once", ["js-thirdparty", "tscompile", "tscompiletests","templates"], function () {
-        // TODO move
-        // Obsolete ( and wrong path), instead webserver links to bower_components direct
+    gulp.task("dev:once", ["dev:init-app", "js-thirdparty", "mocks", "resources", "tscompile", "tscompiletests", "templates", "styles"]);
+
+    gulp.task("styles", function() {
         gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
-            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css/fonts/"));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css"));
 
-	    gulp.src(CONFIG.SRC.THIRDPARTY.CSS())
-	        .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css/"));
-
-        console.log("Successful processed.");
+        gulp.src(CONFIG.FOLDER.SASS() + "main.scss")
+        .pipe(plugins.sass({
+            precision: 8,
+            errLogToConsole: true
+        }))
+        .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css"));
     });
-
 
     gulp.task("echo", function () {
         console.log("ECHO!!!!!!" + CONFIG.DEV.ABSOLUTE_FOLDER());
@@ -85,6 +88,11 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("cleanTarget", function(callback){
         del(["target"], callback);
+    });
+
+    gulp.task("resources", function(cb) {
+        gulp.src(CONFIG.FOLDER.RESOURCES())
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
     // for dev: use the intellij watcher.xml to import
@@ -118,6 +126,41 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
     });
 
+    gulp.task("mocks", function() {
+        gulp.src(CONFIG.SRC.JS.MOCK_FILES())
+            .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
+    });
+
+    gulp.task("dev:init-app", function(cb) {
+        gulp.src(CONFIG.SRC.INIT_APP_TEMPLATE())
+            .pipe(plugins.template({
+                ngDeps: CONFIG.DEV.NG_MODULE_DEPS()
+            },
+            {
+                interpolate: /<%gulp=([\s\S]+?)%>/g,
+                evaluate: /<%gulp([\s\S]+?)%>/g 
+            }))
+            .pipe(plugins.rename("initapp.ts"))
+            .pipe(gulp.dest(CONFIG.FOLDER.SRC() + "app"))
+            .on('error', cb);
+        cb(); 
+    });
+
+    gulp.task("prod:init-app", function(cb) {
+        gulp.src(CONFIG.SRC.INIT_APP_TEMPLATE())
+            .pipe(plugins.template({
+                ngDeps: function() { return ['']; }
+            },
+            {
+                interpolate: /<%gulp=([\s\S]+?)%>/g,
+                evaluate: /<%gulp([\s\S]+?)%>/g 
+            }))
+            .pipe(plugins.rename("initapp.ts"))
+            .pipe(gulp.dest(CONFIG.FOLDER.SRC() + "app"))
+            .on('error', cb);
+        cb(); 
+    });
+
     gulp.task("js-app", function () {
         gulp.src(CONFIG.SRC.JS.FILES())
             .pipe(partials.errorPipe())
@@ -125,7 +168,7 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
     });
 
-    gulp.task("templates", function () {
+    gulp.task("templates", function (cb) {
         // Templating at Build Time
         gulp.src(CONFIG.DEV.HTML_MAIN())
             .pipe(partials.errorPipe())
@@ -156,6 +199,8 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()))
             // TODO distinguish between prod and not
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
+
+        cb();
     });
 
     gulp.task("echo", function(){
@@ -313,6 +358,3 @@ var initGulp = function (gulp, CONFIG) {
 module.exports.initGulp = initGulp;
 module.exports.depsFolder = __dirname + '/node_modules/';
 module.exports.buildConfig = require('./build_config.js');
-
-
-
