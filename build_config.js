@@ -28,12 +28,17 @@ var CONFIG = {
             CSS: _.constant("./css/"),
             SASS : _.constant("./sass/"),
             SRC : _.constant("./src/"),
+            RESOURCES: _.constant("./resources"),
+            MOCK: _.constant("./mock/"),
             TMP : _.constant("./tmp/"),
         },
         DYNAMIC_META : {
             MODULE_NAME : module_dependency_utils.getCurrentModuleName
         },
         SRC: {
+            INIT_APP_TEMPLATE: function() {
+                    return CONFIG.FOLDER.SRC() + "app/initapp.tpl";
+            },
             SASS_FOLDER: function() {
                 return CONFIG.FOLDER.SASS();
             },
@@ -43,6 +48,9 @@ var CONFIG = {
             JS: {
                 LIBS: _.constant(bowerLibFilesToConcat_DEV),
                 SINGLE_LIBS: _.constant(bowerSingleLibFilesNoConcat_DEV),
+                MOCK_FILES: function() {
+                    return CONFIG.FOLDER.MOCK() + "**/*.js";
+                },
                 FILES: function() {
     		        return CONFIG.FOLDER.SRC() + "**/*.js"; 
     	        }
@@ -108,12 +116,14 @@ var CONFIG = {
                 },
                 FILES: {
                     LIBS: _.constant('libs.js'),
+                    MOCKS: _.constant('mocks.js'),
                     APP: _.constant('app.js'),
                     TEMPLATES: _.constant('templates.js')
                 },
                 HEAD_FILES: function () {
                     return [
                         CONFIG.DIST.JS.FILES.LIBS(),
+                        CONFIG.DIST.JS.FILES.MOCKS(),
                         CONFIG.DIST.JS.FILES.TEMPLATES(),
                         CONFIG.DIST.JS.FILES.APP()
                     ];
@@ -126,7 +136,7 @@ var CONFIG = {
             },
             CSS: {
                 FOLDER: function () {
-                    return CONFIG.FOLDER.SASS() + "target/css/";
+                    return CONFIG.FOLDER.SASS() + "./target/css/";
                 },
                 CSS_MAIN: _.constant("main.css"),
                 WATCH_FILES: function () {
@@ -170,7 +180,10 @@ var CONFIG = {
             UI_TEST_FILES : _.constant("./uiTests/**/*.js"),
             // TODO refactor
             PROTRACTOR_CONFIG : _.constant(__dirname + "/protractor.config.js"),
-            KARMA_CONFIG: _.constant(__dirname + "/karma.conf.js")
+            KARMA_CONFIG: _.constant(__dirname + "/karma.conf.js"),
+            NG_MODULE_DEPS: function() {
+                return [];
+            }
         }
 };
 
@@ -257,7 +270,7 @@ function lookdeep(obj){
 
 // TODO move to global gulpfile
 //console.log(lookdeep(CONFIG));
-var result = JSON.stringify(lookdeep(CONFIG), null, 2);
-console.log(result.replace(/,/g, ",\n"));
+//var result = JSON.stringify(lookdeep(CONFIG), null, 2);
+//console.log(result.replace(/,/g, ",\n"));
 
 module.exports = CONFIG;
