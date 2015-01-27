@@ -91,7 +91,7 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     gulp.task("resources", function(cb) {
-        gulp.src(CONFIG.FOLDER.RESOURCES())
+        gulp.src(CONFIG.FOLDER.RESOURCES() + "**/*")
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
