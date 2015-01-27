@@ -3,7 +3,7 @@ var folderToSRC = {};
 var _ = require("lodash");
 module.exports = function(karmaConfig) {
 
-    CONFIG = require('./Build_Config');
+    CONFIG = require('./build_config.js');
     folderToSRC = _.clone(CONFIG.DEV.ABSOLUTE_FOLDER());
     var commonSetupModule = "web3-common-build-setup";
     var isStandaloneExecutedByIntelliJ = CONFIG.DEV.ABSOLUTE_FOLDER().indexOf(commonSetupModule) > -1;

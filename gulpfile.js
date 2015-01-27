@@ -11,10 +11,10 @@
  * gulp --gulpfile mygulpfile.js
  */
 
-module.exports = function (gulp, CONFIG) {
+var initGulp = function (gulp, CONFIG) {
 
     if (!CONFIG) {
-        CONFIG = require(".//Build_Config");
+        CONFIG = require("./build_config.js");
     }
 
     var plugins = {};
@@ -32,6 +32,8 @@ module.exports = function (gulp, CONFIG) {
     plugins.changed = require("gulp-changed");
     plugins.watch = require("gulp-watch");
 
+    plugins.rename = require("gulp-rename");
+    plugins.sass = require("gulp-sass");
 
     var npms = {};
     var gulp_utils = require("./gulp_utils");
@@ -62,20 +64,23 @@ module.exports = function (gulp, CONFIG) {
     gulp.task("default", ["dev"]);
     // "prod:jslibs", moved to global-libs
     gulp.task("prod:once", ["prod"]);
-    gulp.task("prod", ["prod:tscompile", "templates"]); // use prod only
+    gulp.task("prod", ["prod:init-app", "prod:tscompile", "templates"]); // use prod only
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "webserver", "watch"]);
     // "cleanTarget",
-    gulp.task("dev:once", ["js-thirdparty", "tscompile", "tscompiletests","templates"], function () {
-        // TODO move
-        // Obsolete ( and wrong path), instead webserver links to bower_components direct
+    gulp.task("dev:once", ["dev:init-app", "js-thirdparty", "mocks", "resources", "tscompile", "tscompiletests", "templates", "styles"]);
+
+    gulp.task("styles", function() {
         gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
-            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "/css/fonts/"))
-        //    .pipe(gulp.dest(CONFIG.DAB_CQ.DEV.CSS.FOLDER() + "/fonts/"));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css"));
 
-        console.log("Successful processed.");
+        gulp.src(CONFIG.FOLDER.SASS() + "main.scss")
+        .pipe(plugins.sass({
+            precision: 8,
+            errLogToConsole: true
+        }))
+        .pipe(gulp.dest(CONFIG.DIST.FOLDER() + "css"));
     });
-
 
     gulp.task("echo", function () {
         console.log("ECHO!!!!!!" + CONFIG.DEV.ABSOLUTE_FOLDER());
@@ -83,6 +88,11 @@ module.exports = function (gulp, CONFIG) {
 
     gulp.task("cleanTarget", function(callback){
         del(["target"], callback);
+    });
+
+    gulp.task("resources", function() {
+        gulp.src(CONFIG.FOLDER.RESOURCES() + "**/*")
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
     // for dev: use the intellij watcher.xml to import
@@ -116,14 +126,49 @@ module.exports = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
     });
 
+    gulp.task("mocks", function() {
+        gulp.src(CONFIG.SRC.JS.MOCK_FILES())
+            .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
+    });
+
+    gulp.task("dev:init-app", function(cb) {
+        gulp.src(CONFIG.SRC.INIT_APP_TEMPLATE())
+            .pipe(plugins.template({
+                ngDeps: CONFIG.DEV.NG_MODULE_DEPS()
+            },
+            {
+                interpolate: /<%gulp=([\s\S]+?)%>/g,
+                evaluate: /<%gulp([\s\S]+?)%>/g 
+            }))
+            .pipe(plugins.rename("initapp.ts"))
+            .pipe(gulp.dest(CONFIG.FOLDER.SRC() + "app"))
+            .on('error', cb);
+        cb(); 
+    });
+
+    gulp.task("prod:init-app", function(cb) {
+        gulp.src(CONFIG.SRC.INIT_APP_TEMPLATE())
+            .pipe(plugins.template({
+                ngDeps: function() { return ['']; }
+            },
+            {
+                interpolate: /<%gulp=([\s\S]+?)%>/g,
+                evaluate: /<%gulp([\s\S]+?)%>/g 
+            }))
+            .pipe(plugins.rename("initapp.ts"))
+            .pipe(gulp.dest(CONFIG.FOLDER.SRC() + "app"))
+            .on('error', cb);
+        cb(); 
+    });
+
     gulp.task("js-app", function () {
-        gulp.src(CONFIG.SRC.TS.FILES())
+        gulp.src(CONFIG.SRC.JS.FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.APP()))
             .pipe(gulp.dest(CONFIG.DIST.JS.FOLDER()));
     });
 
-    gulp.task("templates", function () {
+    gulp.task("templates", function (cb) {
         // Templating at Build Time
         gulp.src(CONFIG.DEV.HTML_MAIN())
             .pipe(partials.errorPipe())
@@ -153,7 +198,9 @@ module.exports = function (gulp, CONFIG) {
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()))
             // TODO distinguish between prod and not
-            .pipe(gulp.dest(CONFIG.DAB_CQ.DIST.CURRENT_MODULE()));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
+
+        cb();
     });
 
     gulp.task("echo", function(){
@@ -167,7 +214,7 @@ module.exports = function (gulp, CONFIG) {
     });
 
     gulp.task("webserver", function () {
-		plugins.browserSync = plugins.browserSync || require("browser-sync");    
+		plugins.browserSync = plugins.browserSync || require("browser-sync");
 
 		
 
@@ -190,36 +237,32 @@ module.exports = function (gulp, CONFIG) {
     // TODO refactor to dev:tscompile
     gulp.task("tscompile", function () {
         console.log(CONFIG.SRC.TS.TS_FILES());
-        gulp.src(CONFIG.SRC.TS.TS_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
                     allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(), 
-                    // tmpDir : "./ts_tmp",
                     sourcemap: true,
                     sourceRoot: "/",
                     target: "ES5"
-                    //noLib: false
-                    , tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(gulp.dest(CONFIG.DIST.FOLDER()))
     });
 
     gulp.task("tscompiletests", function () {
         console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
-        gulp.src(CONFIG.SRC.TS.TS_UNIT_TEST_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
                     allowBool: true,
-                    out: "tests.js",//CONFIG.FOLDER.JS(), //"js",//
+                    out: "tests.js",
                     // tmpDir : "./ts_tmp",
                     sourcemap: true,
                     sourceRoot: "/",
                     target: "ES5",
                     //noLib: false
-                    tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
     });
@@ -228,7 +271,7 @@ module.exports = function (gulp, CONFIG) {
     gulp.task("prod:tscompile", function () {
         plugins.ngAnnotate = plugins.ngAnnotate || require("gulp-ng-annotate");
 
-        gulp.src(CONFIG.SRC.TS.TS_FILES())
+        gulp.src(CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS()))
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
@@ -239,10 +282,9 @@ module.exports = function (gulp, CONFIG) {
                     sourceRoot: null,
                     target: "ES3"
                     //noLib: false
-                    , tscPath: CONFIG.DEV.CUSTOM_TYPESCRIPT_COMPILER() || null
                 }))
             .pipe(plugins.ngAnnotate())
-            .pipe(gulp.dest(CONFIG.DAB_CQ.DIST.CURRENT_MODULE()));
+            .pipe(gulp.dest(CONFIG.DIST.FOLDER()));
     });
 
     /**
@@ -253,7 +295,7 @@ module.exports = function (gulp, CONFIG) {
         npms.karma = npms.karma || require("karma").server; // TODO move server call to later
         npms.karma.start({
             // "/node_modules/web3-common-build-setup/"+
-            configFile: __dirname + "\\karma.conf.js",
+            configFile: CONFIG.DEV.KARMA_CONFIG(),
             // Override specific config from file
             singleRun: true
             //browsers: ["PhantomJS"]
@@ -287,8 +329,8 @@ module.exports = function (gulp, CONFIG) {
 
     // TODO used for CI and other browsers, atm chromeOnly mode is used to be fast
     gulp.task("seleniumServer", function () {
-        var webdriverPath = CONFIG.FOLDER.DAB_WEBDEV() + "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
-        var command = "java -jar " + CONFIG.DEV.ABSOLUTE_FOLDER() + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
+        var webdriverPath = __dirname + "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
+        var command = "java -jar " + __dirname + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
         exec(command, function (status, output) {
             console.log("Exit status:", status);
             console.log("Program output:", output);
@@ -298,7 +340,6 @@ module.exports = function (gulp, CONFIG) {
     gulp.task('ngdocs', [], function () {
         plugins.ngdocs = require("gulp-ngdocs");
         var options = {
-//            scripts: ['../app.min.js'],
             html5Mode: true,
             startPage: '/api',
             title: "My Awesome Docs",
@@ -311,36 +352,9 @@ module.exports = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.CI.DOCS_FOLDER()));
     });
 
-
-//gulp.task("setup", function (cb) {
-//    var bower = require("node_modules/bower/bin/bower");
-//    bower();
-//});
-
-//    gulp.task("statistics", function (cb) {
-//        gulp.run("uncss");
-////    gulp.run("grunt-phantomas");
-//    });
-
-    //gulp.task("lint", function () {
-    //    require("gulp-jshint");
-    //    return gulp.src(CONFIG.SRC.TS.FILES())
-    //        .pipe(plugins.jshint())
-    //        .pipe(plugins.jshint.reporter("default"));
-    //});
-
-    //gulp.task("dgeni", function () {
-    //    // TODO dgeni not full setup
-    //    npms.dgeni = npms.dgeni || require("dgeni");
-    //
-    //    var dgeniInstance = new dgeni([require("./docs.config.js")]);
-    //    dgeniInstance.generate().catch(function(error) {
-    //        process.exit(1);
-    //    });
-    //});
-
     return gulp;
 };
 
-
-
+module.exports.initGulp = initGulp;
+module.exports.depsFolder = __dirname + '/node_modules/';
+module.exports.buildConfig = require('./build_config.js');
