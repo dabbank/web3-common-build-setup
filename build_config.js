@@ -28,7 +28,7 @@ var CONFIG = {
             CSS: _.constant("./css/"),
             SASS : _.constant("./sass/"),
             SRC : _.constant("./src/"),
-            RESOURCES: _.constant("./resources"),
+            RESOURCES: _.constant("./resources/"),
             MOCK: _.constant("./mock/"),
             TMP : _.constant("./tmp/"),
         },
