@@ -14,7 +14,10 @@ node, npm, git, bower, gulp
 #### Executables in global env path
 git, bower, gulp
 #### Set environment variable
+```Batchfile
 NODE_PATH=<path_to_local_user_repo>/node_modules
+```
+
 #### Optional ( do later if you know what to do)
 See npm faq <a href="https://docs.npmjs.com/faq">here</a>
 
@@ -37,6 +40,7 @@ npm install --prefix anotherPathTo_node_modules
 
 for **bower specific settings** you can also do the same with the .bowerrc 
 
+```Batchfile
 {
     "proxy":"http://myproxy:1111",
     "https-proxy":"http://myproxy:1111",
@@ -48,12 +52,13 @@ for **bower specific settings** you can also do the same with the .bowerrc
 	},
 	"tmp": "C:/tmp/.bower"
 }
-
+```
 
 ####<a name="proxy">Proxy Settings if needed</a>
 
 Set environment variable
 
+```Batchfile
 HTTP_PROXY=http://myproxy:1111
 
 HTTPS_PROXY=http://myproxy:1111
@@ -65,12 +70,12 @@ npm config set https-proxy http://myproxy:1111
 
 
 git config --global url."https://".insteadOf git://
-
+```
 
 To have git working with your projects, unset proxy in all of your git projects, add a .gitconfig in the folder where npm install is executed,
 or set and unset it globally:
 
-
+```Batchfile
 git config --global http.proxy http://myproxy:1111
 
 git config --global https.proxy http://myproxy:1111
@@ -78,32 +83,71 @@ git config --global https.proxy http://myproxy:1111
 git config --global --unset http.proxy
 
 git config --global --unset https.proxy
+```
 
 ###<a name="installanduse">Install web3-common-build-setup</a>
+
 1. **Global locale repository installation**
-    <p>npm install -g https://github.com/dabbank/web3-common-build-setup/archive/0.3.0.tar.gz</p>
-2. **Windows-Workaround** <p>( install nested dependencies of web3-common-build-setup):</p>
-    <p>cd %NODE_PATH%/web3-common-build-setup</p>
-    npm install
+    
+	```Batchfile
+	npm install -g https://github.com/dabbank/web3-common-build-setup/archive/0.3.0.tar.gz
+	```
+
+2. **Windows-Workaround** 
+ 
+    ( install nested dependencies of web3-common-build-setup)
+    
+	```Batchfile
+	cd %NODE_PATH%/web3-common-build-setup
+	```
+
+	```Batchfile
+    	npm install
+    	```
+    
+    
     <p>(run 1-2 times. errors can be ignored)</p>
     <img src="readme/npm_install.gif" />
-3. **Optional**
-   To implement with npm modules, you should register them local with
-   <p>npm link</p>
-   and use the linked npm with e.g.
-   <p>npm link web3-common-build.setup</p>
 
-###Run your app
-    <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy)</p>
-   * npm init
+3. **Optional**
+
+   To implement with npm modules, you should register them local with
+
+	```Batchfile
+   	npm link
+   	```
+
+   and use the linked npm with e.g.
+
+	```Batchfile   
+	npm link web3-common-build.setup</p>
+	```
+
+###Setup & run your app
+    <p>see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy</p>
+   * create default package.json
+
+ 	```Batchfile    
+	npm init
+	```
    * add manual in package.json
      <p>"devDependencies": {"web3-common-build-setup": "0.3.0"}</p>
-   * npm install gulp -D
-   * copy gulpfile.js skeletton ( from <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a>)
-   * gulp
+   * Install local gulp, addditional to global gulp ( alternative you can try to set global node_modules/gulp to PATH)
+	
+	```Batchfile
+	npm install gulp -D
+	````
+	
+   * copy content of **gulpfile.js** skeletton ( from <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a>)
+   * run dev mode
+     
+     ```Batchfile
+     gulp
+     ```
+     
     <p>→  browser should start up automatically</p>
     <p><img src="readme/gulp_watch.gif" /></p>
-   * continue on how to use HTML & TypeScript & Using Libraries
+   * continue on how to use **HTML** & **TypeScript** & **using Libraries**
 4. **Use of HTML**
    * create src folder
    * copy index.html of <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> to 
