@@ -16,10 +16,39 @@ git, bower, gulp
 ### Set environment variable
 NODE_PATH=<path_to_local_user_repo>/node_modules
 ### Optional ( do later if you know what to do)
-To Change node_modules folder: create a .npmrc, .bowerrc in the folder of your app, or in one of the parents, or set it global:
+See npm faq <a href="https://docs.npmjs.com/faq">here</a>
+
+To Change node_modules folder: 
 
 npm config --global set prefix %NODE_PATH%/npm_packages
 npm config --global set cache %NODE_PATH%/npm-cache
+
+or
+
+create a .npmrc in the folder of your app, or in one of their parents folders
+
+and
+
+copy your node_modules to this new folder
+
+there also exist the usage of 
+
+npm install --prefix anotherPathTo_node_modules
+
+for **bower specific settings** you can also do the same with the .bowerrc 
+
+{
+    "proxy":"http://myproxy:1111",
+    "https-proxy":"http://myproxy:1111",
+	"storage": {
+		"packages" : "C:/repository/.bower/cache",
+		"registry" : "C:/repository/.bower/registry",
+		"links" : "C:/repository/.bower/links",
+		"empty" : "C:/repository/.bower/empty"
+	},
+	"tmp": "C:/tmp/.bower"
+}
+
 
 ###<a name="proxy">Proxy Settings if needed</a>
 
@@ -60,11 +89,18 @@ git config --global --unset https.proxy
     <img src="readme/npm_install.gif" />
 3.
 3. **Run your app**
-    <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a>)</p>
-    Install your needed bower dependencies**
-    <p>bower install</p>
-    <p>gulp</p>
-    →  browser should start up automatically
+    <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy)</p>
+   * npm init
+   * npm install -D web3-common-build-setup
+   * bower init
+   * bower install lodash-compat -D
+   * copy gulpfile.js skeletton ( from simple-app)
+   * define your libs to be used
+   <p>CONFIG.SRC.JS.LIBS = function() {
+    return ["bower_components/lodash-compat/lodash.js"];
+   };</p>
+   * gulp
+    <p>→  browser should start up automatically</p>
     <p><img src="readme/gulp_watch.gif" /></p>
 4. **Optional**
    To implement with npm modules, you should register them local with
