@@ -1,4 +1,4 @@
-
+# web3-common-build-setup
 
 * <a href="#quicksetup">Setup</a>
     *  <a href="#prequisites">Prequisites</a>
@@ -6,16 +6,16 @@
     * <a href="#proxy">Proxy Settings</a>
 * <a href="#about">About</a>
 
-#<a name="quicksetup">Setup</a>
+##<a name="quicksetup">Setup</a>
 
-##<a name="prequisites">Prequisites</a>
-### Installed
+###<a name="prequisites">Prequisites</a>
+#### Installed
 node, npm, git, bower, gulp
-### Executables in global env path
+#### Executables in global env path
 git, bower, gulp
-### Set environment variable
+#### Set environment variable
 NODE_PATH=<path_to_local_user_repo>/node_modules
-### Optional ( do later if you know what to do)
+#### Optional ( do later if you know what to do)
 See npm faq <a href="https://docs.npmjs.com/faq">here</a>
 
 To Change node_modules folder: 
@@ -50,7 +50,7 @@ for **bower specific settings** you can also do the same with the .bowerrc
 }
 
 
-###<a name="proxy">Proxy Settings if needed</a>
+####<a name="proxy">Proxy Settings if needed</a>
 
 Set environment variable
 
@@ -79,7 +79,7 @@ git config --global --unset http.proxy
 
 git config --global --unset https.proxy
 
-##<a name="installanduse">Install web3-common-build-setup</a>
+###<a name="installanduse">Install web3-common-build-setup</a>
 1. **Global locale repository installation**
     <p>npm install -g https://github.com/dabbank/web3-common-build-setup/archive/0.3.0.tar.gz</p>
 2. **Windows-Workaround** <p>( install nested dependencies of web3-common-build-setup):</p>
@@ -93,7 +93,7 @@ git config --global --unset https.proxy
    and use the linked npm with e.g.
    <p>npm link web3-common-build.setup</p>
 
-##Run your app
+###Run your app
     <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy)</p>
    * npm init
    * add manual in package.json
@@ -114,8 +114,18 @@ git config --global --unset https.proxy
    * create a file src/initApp.ts and others in subfolders of src/headermodule/mycontroller.ts
    * see the file compiled into target/app.js and executed on your page
 6. **Use of Libraries**
-   * bower init
-   * bower install lodash-compat -D   
+   * create default bower.json file
+     
+     ```Batchfile
+     bower init
+     ```
+     
+   * Example of installing a dependency
+     
+     ```Batchfile 
+     bower install lodash-compat -D
+     ```
+     
    * define your libs to be used
    <p>CONFIG.SRC.JS.LIBS = function() {
     return ["bower_components/lodash-compat/lodash.js"];
@@ -128,16 +138,16 @@ git config --global --unset https.proxy
 
 
 
-#<a name="about">About</a>
+##<a name="about">About</a>
 
-# Why ?
+## Why ?
 Composite ( think of Object Oriented) build setup,
 to start projects very quick, without scaffolding
 and supporting multi module management with TypeScript & Angular.js
 
 
 
-# TODOS
+## TODOS
 see TODO reference
 https://docs.google.com/presentation/d/1fsZw-xODbVgovIMJAmZdxAgjOqU4LQ7Sb7pEW6c-YF8/edit?usp=sharing
 
@@ -147,3 +157,4 @@ https://github.com/psi-4ward/gulpsi/
 
 
 <img src="readme/modularization_example_01.gif" />
+
