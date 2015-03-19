@@ -79,7 +79,7 @@ git config --global --unset http.proxy
 
 git config --global --unset https.proxy
 
-##<a name="installanduse">Install & use web3-common-build-setup</a>
+##<a name="installanduse">Install web3-common-build-setup</a>
 1. **Global locale repository installation**
     <p>npm install -g https://github.com/dabbank/web3-common-build-setup/archive/0.3.0.tar.gz</p>
 2. **Windows-Workaround** <p>( install nested dependencies of web3-common-build-setup):</p>
@@ -87,26 +87,43 @@ git config --global --unset https.proxy
     npm install
     <p>(run 1-2 times. errors can be ignored)</p>
     <img src="readme/npm_install.gif" />
-3.
-3. **Run your app**
-    <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy)</p>
-   * npm init
-   * npm install -D web3-common-build-setup
-   * bower init
-   * bower install lodash-compat -D
-   * copy gulpfile.js skeletton ( from simple-app)
-   * define your libs to be used
-   <p>CONFIG.SRC.JS.LIBS = function() {
-    return ["bower_components/lodash-compat/lodash.js"];
-   };</p>
-   * gulp
-    <p>→  browser should start up automatically</p>
-    <p><img src="readme/gulp_watch.gif" /></p>
-4. **Optional**
+3. **Optional**
    To implement with npm modules, you should register them local with
    <p>npm link</p>
    and use the linked npm with e.g.
    <p>npm link web3-common-build.setup</p>
+
+##Run your app
+    <p>( see <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> for acceptance tests & integration tests & example of bower.json, package.json gulpfile.js to copy)</p>
+   * npm init
+   * add manual in package.json
+     <p>"devDependencies": {"web3-common-build-setup": "0.3.0"}</p>
+   * npm install gulp -D
+   * copy gulpfile.js skeletton ( from <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a>)
+   * gulp
+    <p>→  browser should start up automatically</p>
+    <p><img src="readme/gulp_watch.gif" /></p>
+   * continue on how to use HTML & TypeScript & Using Libraries
+4. **Use of HTML**
+   * create src folder
+   * copy index.html of <a href="https://github.com/dabbank/web3-build-template-demo-apps/tree/master/demo-simple-app-page">dab-simple-app-page</a> to 
+   * create an empty src/frameContent.html  
+   * rerun gulp and do changes in frameContent.html
+   * see the file compiled into target/index.html and executed on your page
+5. **Use of TypeScript**
+   * create a file src/initApp.ts and others in subfolders of src/headermodule/mycontroller.ts
+   * see the file compiled into target/app.js and executed on your page
+6. **Use of Libraries**
+   * bower init
+   * bower install lodash-compat -D   
+   * define your libs to be used
+   <p>CONFIG.SRC.JS.LIBS = function() {
+    return ["bower_components/lodash-compat/lodash.js"];
+   };</p>
+ 7. Angular HTML template
+    * create src/headermodule/mydirective.tpl.html
+    * see the file compiled into target/templates.js and ready to use with e.g. <div ng-include="'headermodule/mydirective.tpl.html'"></div>
+
 
 
 
