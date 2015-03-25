@@ -192,6 +192,112 @@ and supporting multi module management with TypeScript & Angular.js
 
 
 ## TODOS
+
+
+### Documentation
+
+
+#### Presentation
+https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9asz0I/edit?usp=sharing
+
+#### Improve Getting Started
+#### Improve : How to Customization
+#### Explain Principles
+##### Is some new framework? Why create your own suxx
+##### Why Scaffolding suxx
+##### Why modularization at build time is useful
+
+
+#### Explain Convention over Configuration for bower(/npm) company prefix naming
+* see dependency scopes: provided, compiled
+* see angular.module generation
+
+#### Generate HTML & JS with Underscore-templating at BUILD-TIME: Document and extend idea
+* <=%gulp  with <script
+* frameContent.html -> by gulp included
+
+#### TypeScript how and why and when to use it
+#### Testing Strategy
+* Acceptance tests: ui tests with cucumber & protractor
+* UnitTests: Karma & Jasmine: Only Services
+* Integration & UI Tests: Protractor & WebDriver: Controller & Directives: handlers and scope variables
+       <p>use </p>
+* Code Coverage: Istanbul - see CI mode
+#### Resource Links to used technologies ( within package.json/bower.json ?)
+#### Explain where node gets npm packages and executables
+#### Karma & Jasmine
+    * provide examples
+#### Explain Modularization
+
+
+
+
+### Installation
+#### handle proxy issues smoother by e.g. .gitconfig
+#### global init command to create minimum files for starter project
+
+
+
+
+
+### Reuse
+####  frameContent.html & index.html: are convention over configuration -> BAD
+      move to default values to override: explicit override in example app
+#### Convention over configuration about dependency files to concat :
+* e.g. where to get angular.js, if defined in bower.json
+* .min files
+* e.g. by main.js in bower.json or package.json
+* e.g. dependency definition file , check existing solution
+
+#### angular init files :
+* mocking, initApp ...
+
+### Modularization
+#### usage of dependency scopes by build tool like maven: provided, compiled
+     currently used for typescript by bower devDependencies and dependencies to only use .d.ts interface files for compilation
+
+### Missing Features
+#### Prod Version
+    * delivery, minify
+    * strategy to use dev standalone mock version & prod
+
+
+
+
+#### Generate angular module dependencies by bower defined INHOUSE dependencies (not thirdparty: convention
+* e.g. angular.module('myapp', ['subdependency-by-bower-name'])
+
+
+#### Mock mode with Angular
+* preferred is http interceptor, not angular-mock and client mocking to server mocking !
+#### mock without angular
+
+#### TypeScript
+    * solid tsd stage
+#### CI mode for only related tasks: separate file
+#### Documentation: typedoc or dgeni
+#### Protractor & acceptance tests with cucumber:
+    * support easy usage of both at the same time
+    * support by console and easy usage by webstorm
+    * sourcemaps support
+#### TypeScript Interface generator from REST backend:
+    * PHP, JsonSchema, Java (MVN)
+
+#### use angular strict-di mode
+
+#### how to handle commonjs
+
+
+
+
+### Bugs
+#### npm install throws exception of not found exception but gulp works
+#### Demo AngularTypescript Apps: upgrade gulpfile.js to current way of setup
+#### At the moment: .min and library dependencies are defined in web3-common-build-setup
+    <p> -> move to concrete app gulpfile.js and throw exception/hint if not overridden there</p>
+
+
+
 see TODO reference
 https://docs.google.com/presentation/d/1fsZw-xODbVgovIMJAmZdxAgjOqU4LQ7Sb7pEW6c-YF8/edit?usp=sharing
 
