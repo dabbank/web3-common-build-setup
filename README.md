@@ -1,10 +1,34 @@
 # web3-common-build-setup
 
+
+##<a name="about">About</a>
+
+## Why ?
+Composite ( think of Object Oriented) build setup,
+to start projects very quick, without scaffolding
+and supporting multi module management with TypeScript & Angular.js
+
+
+* <a href="#highlights">Highlights</a>
 * <a href="#quicksetup">Setup</a>
-    *  <a href="#prequisites">Prequisites</a>
+    * <a href="#prequisites">Prequisites</a>
     * <a href="#installanduse">Install & Use</a>
     * <a href="#proxy">Proxy Settings</a>
-* <a href="#about">About</a>
+* <a href="#todos">TODOS</a>
+    * <a href="#todos_documentation">Documentation</a>
+    * <a href="#todos_installation">Installation</a>
+    * <a href="#todos_installation">Reuse</a>
+    * <a href="#todos_modularization">Modularization</a>
+    * <a href="#todos_missing_features">Missing Features</a>
+    * <a href="#todos_bugs">Bugs</a>
+
+
+## <a name="highlights">Highlights</a>
+* composite build setup with modularization ideas based on node.js, gulp, bower, npm, TypeScript
+* sass by node, not ruby & compass
+* node bundled selenium & chromedriver
+* ...
+
 
 ##<a name="quicksetup">Setup</a>
 
@@ -13,12 +37,12 @@
 node, npm, git, bower, gulp
 #### Executables in global env path
 git, bower, gulp
-#### Set environment variable
+#### Set environment variable ( seems to be needed, @TODO: check why)
 ```Batchfile
 NODE_PATH=<path_to_local_user_repo>/node_modules
 ```
 
-#### Optional ( do later if you know what to do)
+#### <a name="optionalsetup">Optional Setup</a> ( do later if you know what to do)
 See npm faq <a href="https://docs.npmjs.com/faq">here</a>
 
 To Change node_modules folder: 
@@ -88,6 +112,7 @@ git config --global --unset https.proxy
 ###<a name="installanduse">Install web3-common-build-setup</a>
 
 1. **Global locale repository installation**
+    ( You could also install local to your app, or by npm link)
     
 	```Batchfile
 	npm install -g https://github.com/dabbank/web3-common-build-setup/archive/0.3.0.tar.gz
@@ -95,8 +120,8 @@ git config --global --unset https.proxy
 
 2. **Windows-Workaround** 
  
-    ( install nested dependencies of web3-common-build-setup)
-    
+    Install nested dependencies of web3-common-build-setup within
+
 	```Batchfile
 	cd %NODE_PATH%/web3-common-build-setup
 	```
@@ -182,30 +207,25 @@ git config --global --unset https.proxy
 
 
 
-##<a name="about">About</a>
-
-## Why ?
-Composite ( think of Object Oriented) build setup,
-to start projects very quick, without scaffolding
-and supporting multi module management with TypeScript & Angular.js
+##<a name="todos">TODOS</a>
 
 
-
-## TODOS
-
-
-### Documentation
+### <a name="todos_documentation">Documentation</a>
 
 
 #### Presentation
-https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9asz0I/edit?usp=sharing
+<a href="https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9asz0I/edit?usp=sharing">Google Presentation</a>
 
 #### Improve Getting Started
+
 #### Improve : How to Customization
+
+
 #### Explain Principles
-##### Is some new framework? Why create your own suxx
-##### Why Scaffolding suxx
-##### Why modularization at build time is useful
+
+* Is some new framework? Why create your own suxx
+* Why Scaffolding suxx
+* Why modularization at build time is useful
 
 
 #### Explain Convention over Configuration for bower(/npm) company prefix naming
@@ -223,16 +243,18 @@ https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9as
 * Integration & UI Tests: Protractor & WebDriver: Controller & Directives: handlers and scope variables
        <p>use </p>
 * Code Coverage: Istanbul - see CI mode
+
 #### Resource Links to used technologies ( within package.json/bower.json ?)
 #### Explain where node gets npm packages and executables
 #### Karma & Jasmine
-    * provide examples
+* provide examples
+
 #### Explain Modularization
 
 
 
 
-### Installation
+###<a name="todos_installation">Installation</a>
 #### handle proxy issues smoother by e.g. .gitconfig
 #### global init command to create minimum files for starter project
 
@@ -240,9 +262,10 @@ https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9as
 
 
 
-### Reuse
+###<a name="todos_reuse">Reuse</a>
 ####  frameContent.html & index.html: are convention over configuration -> BAD
-      move to default values to override: explicit override in example app
+move to default values to override: explicit override in example app
+
 #### Convention over configuration about dependency files to concat :
 * e.g. where to get angular.js, if defined in bower.json
 * .min files
@@ -252,17 +275,20 @@ https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9as
 #### angular init files :
 * mocking, initApp ...
 
-### Modularization
+
+
+
+###<a name="todos_modularization">Modularization</a>
 #### usage of dependency scopes by build tool like maven: provided, compiled
-     currently used for typescript by bower devDependencies and dependencies to only use .d.ts interface files for compilation
+currently used for typescript by bower devDependencies and dependencies to only use .d.ts interface files for compilation
 
-### Missing Features
+
+
+
+###<a name="todos_missing_features">Missing Features</a>
 #### Prod Version
-    * delivery, minify
-    * strategy to use dev standalone mock version & prod
-
-
-
+* delivery, minify
+* strategy to use dev standalone mock version & prod
 
 #### Generate angular module dependencies by bower defined INHOUSE dependencies (not thirdparty: convention
 * e.g. angular.module('myapp', ['subdependency-by-bower-name'])
@@ -273,15 +299,17 @@ https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9as
 #### mock without angular
 
 #### TypeScript
-    * solid tsd stage
+* solid tsd stage
+
 #### CI mode for only related tasks: separate file
 #### Documentation: typedoc or dgeni
 #### Protractor & acceptance tests with cucumber:
-    * support easy usage of both at the same time
-    * support by console and easy usage by webstorm
-    * sourcemaps support
+* support easy usage of both at the same time
+* support by console and easy usage by webstorm
+* sourcemaps support
+
 #### TypeScript Interface generator from REST backend:
-    * PHP, JsonSchema, Java (MVN)
+* PHP, JsonSchema, Java (MVN)
 
 #### use angular strict-di mode
 
@@ -290,21 +318,27 @@ https://docs.google.com/presentation/d/1gckQ0SMw0bnWEy8cZz2guB5-VfW4CGfplflmc9as
 
 
 
-### Bugs
+###<a name="todos_bugs">Bugs</a>
 #### npm install throws exception of not found exception but gulp works
+*  NODE_PATH needs to be set, otherwise global web3-common-build-setup seems not to be found in app folder
+
 #### Demo AngularTypescript Apps: upgrade gulpfile.js to current way of setup
 #### At the moment: .min and library dependencies are defined in web3-common-build-setup
-    <p> -> move to concrete app gulpfile.js and throw exception/hint if not overridden there</p>
+<p> -> move to concrete app gulpfile.js and throw exception/hint if not overridden there</p>
 
 
 
-see TODO reference
+
+
+
+
+see TODO reference : Deprecated
 https://docs.google.com/presentation/d/1fsZw-xODbVgovIMJAmZdxAgjOqU4LQ7Sb7pEW6c-YF8/edit?usp=sharing
 
 
 see project clone by Christian:
-https://github.com/psi-4ward/gulpsi/
+<a href="https://github.com/psi-4ward/gulpsi/">https://github.com/psi-4ward/gulpsi/</a>
 
 
-<img src="readme/modularization_example_01.gif" />
+
 
