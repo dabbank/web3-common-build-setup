@@ -1,5 +1,7 @@
 # web3-common-build-setup
+**Starter Template based on gulp for enterprise size projects**
 
+and documentation about best TypeScript, Angular.js, and modularization
 
 ##<a name="about">About</a>
 
@@ -79,6 +81,7 @@ for **bower specific settings** you can also do the same with the .bowerrc
 ```
 
 ####<a name="proxy">Proxy Settings if needed</a>
+mind: bower uses git for installing dependencies
 
 Set environment variable
 
