@@ -1,6 +1,10 @@
 // http://stackoverflow.com/questions/22741686/publishing-a-bower-package-with-bower
 // http://www.frontendjunkie.com/2014/01/using-bower-as-package-management-tool.html
 
+/**
+ *  Let all Folders end with / , instead of beginning
+ *
+ */
 
 var _ = require('lodash');
 var path = require('path');
@@ -8,7 +12,7 @@ var module_dependency_utils = require('./module_dependency_utils');
 
 
 var bowerFolder = 'bower_components/';
-var commonSetupModule = "web3-common-build-setup";
+
 var bowerLibFilesToConcat = [
     'angular/angular.js',
     'angular-bootstrap/ui-bootstrap.js',
@@ -24,23 +28,25 @@ var bowerSingleLibFilesNoConcat = [
 var bowerSingleLibFilesNoConcat_DEV = toFullPath(bowerSingleLibFilesNoConcat, bowerFolder);
 
 var CONFIG = {
-        FOLDER: {
+        DEV_FOLDER: {
             CSS: _.constant("./css/"),
             SASS : _.constant("./sass/"),
             SRC : _.constant("./src/"),
             RESOURCES: _.constant("./resources/"),
             MOCK: _.constant("./mock/"),
             TMP : _.constant("./tmp/"),
+            THIRDPARTY_TS_REFERENCE_FILE : _.constant(__dirname + "/ts_definitions/reference.d.ts")
         },
         DYNAMIC_META : {
-            MODULE_NAME : module_dependency_utils.getCurrentModuleName
+            ROOT_IDENTIFIER : _.constant("web3/"),
+            MODULE_NAME : _.constant(module_dependency_utils.getCurrentModuleName())
         },
         SRC: {
             INIT_APP_TEMPLATE: function() {
-                    return CONFIG.FOLDER.SRC() + "app/initapp.tpl";
+                    return CONFIG.DEV_FOLDER.SRC() + "app/initapp.tpl";
             },
             SASS_FOLDER: function() {
-                return CONFIG.FOLDER.SASS();
+                return CONFIG.DEV_FOLDER.SASS();
             },
             SASS_MAIN : function () {
                 return CONFIG.SRC.SASS_FOLDER() + "main.scss";
@@ -49,70 +55,77 @@ var CONFIG = {
                 LIBS: _.constant(bowerLibFilesToConcat_DEV),
                 SINGLE_LIBS: _.constant(bowerSingleLibFilesNoConcat_DEV),
                 MOCK_FILES: function() {
-                    return CONFIG.FOLDER.MOCK() + "**/*.js";
+                    return CONFIG.DEV_FOLDER.MOCK() + "**/*.js";
                 },
                 FILES: function() {
-    		        return CONFIG.FOLDER.SRC() + "**/*.js"; 
+    		        return CONFIG.DEV_FOLDER.SRC() + "**/*.js";
     	        }
             },
             TS: {
                 // Dynamically extended by devDependency components
                 TS_FILES: function(){
                     return [
-                        CONFIG.FOLDER.SRC() + "**/*.ts", 
+                        CONFIG.DEV_FOLDER.SRC() + "**/*.ts",
                         "!" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
                     ];
                 },
                 // No dynamic dependencies needed
                 TS_UNIT_TEST_FILES : function(){
                     return [
-                        CONFIG.FOLDER.SRC() + "**/*Test.d.ts",
-                        CONFIG.FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
+                        CONFIG.DEV_FOLDER.SRC() + "**/*Test.d.ts",
+                        CONFIG.DEV_FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
                     ];
                 },
+                // TODO deprecated
                 TS_DEFINITIONS: function() {
                     return [
-                        CONFIG.FOLDER.SRC() + "**/*.d.ts", 
-                        __dirname + "/ts_definitions/reference.d.ts"
+                        CONFIG.DEV_FOLDER.SRC() + "**/*.d.ts",
+                        CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()
                     ];
                 },
                 // TODO move to general files
                 GLOBAL_TS_UNIT_TEST_FILES :_.constant("**/*Test.ts") // must be global in TS_FILES
             },
             ANGULAR_HTMLS: function() {
-    		    return CONFIG.FOLDER.SRC() + "**/*.tpl.html";
+    		    return CONFIG.DEV_FOLDER.SRC() + "**/*.tpl.html";
     	    },
             ALL_HTML_TEMPLATES : function(){
-                return CONFIG.FOLDER.SRC() + "**/*.html";
+                return CONFIG.DEV_FOLDER.SRC() + "**/*.html";
             },
             THIRDPARTY: {
                 FONTS : function(){
                     return CONFIG.SRC.THIRDPARTY.FONTS_FOLDER() + "fonts/**/*";
                 },
+                // TODO deprecated, refactor
                 FONTS_FOLDER : _.constant(bowerFolder.concat("bootstrap-sass-official/assets/")),
                 CSS : function() {
                     return ['']; // override in project's build config, if you need 3rd party css
                 }
             },
             ASSETS : function() {
-    		    return CONFIG.FOLDER.SRC() + "assets/**/*.js";
+    		    return CONFIG.DEV_FOLDER.SRC() + "assets/**/*.js";
     	    },
             SPRITES_IMG_BASE_FOLDER : function(){
-                return CONFIG.FOLDER.SASS() + "sprites/img";
+                return CONFIG.DEV_FOLDER.SASS() + "sprites/img";
             },
             SASS_TARGET_FOLDER : function(){
-                return CONFIG.DIST.FOLDER();
+                return CONFIG.DIST.DEV_FOLDER();
             }
         },
 
         DIST: {
-            FOLDER : _.constant('./target/'),
+            DEV_FOLDER : _.constant('./dev_target/'),
+            DIST_FOLDER : _.constant("dist_target/"),
+            ROOT_PREFIX_PATH : function(){
+                return CONFIG.DYNAMIC_META.ROOT_IDENTIFIER() + CONFIG.DYNAMIC_META.MODULE_NAME() + "/";
+            },
+
             FILES : function(){
-                return CONFIG.DIST.FOLDER() + "**/*";
+                return CONFIG.DIST.DEV_FOLDER() + "**/*";
             },
             JS: {
-                FOLDER: function () {
-                    return CONFIG.DIST.FOLDER(); 
+                DEV_FOLDER: function () {
+                    return CONFIG.DIST.DEV_FOLDER();
                 },
                 FILES: {
                     LIBS: _.constant('libs.js'),
@@ -131,19 +144,19 @@ var CONFIG = {
             },
             TS : {
                 SRC_FOLDER : function(){
-                    return CONFIG.DIST.FOLDER() + "src/";
+                    return CONFIG.DIST.DEV_FOLDER() + "src/";
                 }
             },
             CSS: {
-                FOLDER: function () {
-                    return CONFIG.FOLDER.SASS() + "./target/css/";
+                DEV_FOLDER: function () {
+                    return CONFIG.DEV_FOLDER.SASS() + "./target/css/";
                 },
                 CSS_MAIN: _.constant("main.css"),
                 WATCH_FILES: function () {
-                    return CONFIG.DIST.CSS.FOLDER() + '**/*.scss';
+                    return CONFIG.DIST.CSS.DEV_FOLDER() + '**/*.scss';
                 },
                 HEAD_FILE: function () {
-                    return CONFIG.FOLDER.CSS() + CONFIG.DIST.CSS.CSS_MAIN();
+                    return CONFIG.DEV_FOLDER.CSS() + CONFIG.DIST.CSS.CSS_MAIN();
                 }
             }
         },
@@ -152,28 +165,28 @@ var CONFIG = {
         },
         PARTIALS: {
             MAIN: function() {
-    		    return CONFIG.FOLDER.SRC() + "frameContent.html";
+    		    return CONFIG.DEV_FOLDER.SRC() + "frameContent.html";
     	    }
         },
         DEV: {
     		WEBSERVER_BASE_ROOT_DIRS : function(){
     			return [
     				"./", 					// For Sourcemaps
-    				CONFIG.DIST.FOLDER()           
+    				CONFIG.DIST.DEV_FOLDER()
     			];
     		}
     		,
             HTML_MAIN: function(){
-                return CONFIG.FOLDER.SRC() + "index.html";
+                return CONFIG.DEV_FOLDER.SRC() + "index.html";
             }
             ,
             ABSOLUTE_FOLDER: _.constant(path.resolve() + "\\"),
             CURRENT_APP: _.constant(path.basename()),
     	    STANDALONE_FOLDER: function() {
-    		    return CONFIG.DIST.FOLDER();
+    		    return CONFIG.DIST.DEV_FOLDER();
     	    },
             UNIT_TESTS_JS_FOLDER :  function(){
-                return CONFIG.FOLDER.TMP() + "tests/";
+                return CONFIG.DEV_FOLDER.TMP() + "tests/";
                 }
             ,
             // TODO refactor to folder

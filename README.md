@@ -16,6 +16,7 @@ and supporting multi module management with TypeScript & Angular.js
     * <a href="#prequisites">Prequisites</a>
     * <a href="#installanduse">Install & Use</a>
     * <a href="#proxy">Proxy Settings</a>
+* <a href="#tips">Tips</a>    
 * <a href="#todos">TODOS</a>
     * <a href="#todos_documentation">Documentation</a>
     * <a href="#todos_installation">Installation</a>
@@ -208,6 +209,10 @@ git config --global --unset https.proxy
 
 
 
+##<a name="tips">Tips</a>
+
+To check newest npm updates, it is good to use :
+<a href="https://www.npmjs.com/package/npm-check-updates#readme">https://www.npmjs.com/package/npm-check-updates#readme</a>
 
 
 ##<a name="todos">TODOS</a>
