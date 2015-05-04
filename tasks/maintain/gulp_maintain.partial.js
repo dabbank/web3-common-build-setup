@@ -1,3 +1,4 @@
+// TODO unused
 var plugins = {};
 
 var gulp = require("gulp");
@@ -7,7 +8,7 @@ gulp.task('tsd', function (callback) {
 
     plugins.tsd({
         command: 'reinstall',
-        config: './tsd.json'
+        config: './../config/tsd.json'
     }, callback);
 });
 
