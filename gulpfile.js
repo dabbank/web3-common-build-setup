@@ -42,7 +42,19 @@ var initGulp = function (gulp, CONFIG) {
 
 
     // default by convention of gulp
-    gulp.task("default", ["dev"]);
+    gulp.task("default", function(){
+        process.stdout.write("\nUse\n");
+        process.stdout.write("gulp dev\n");
+        process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
+        process.stdout.write("------------------\n");
+        process.stdout.write("Use\n");
+        process.stdout.write("gulp prod\n");
+        process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
+        process.stdout.write("------------------\n");
+        process.stdout.write("Use\n");
+        process.stdout.write("gulp help\n");
+        process.stdout.write("for howto - TODO\n");
+    });
     // "prod:jslibs", moved to global-libs
     gulp.task("prod:once", ["prod"]);
     gulp.task("prod", ["prodFromCommon"]); // use prod only
@@ -81,7 +93,6 @@ var initGulp = function (gulp, CONFIG) {
 
         var svgSrcFiles = CONFIG.SRC.SPRITES_IMG_BASE_FOLDER() + CONFIG.FILE_TYPE_MACHER.SVG();
 
-
         return gulp.src(svgSrcFiles)
             .pipe(plugins.svgSprite(spritesConfig));
     };
@@ -96,35 +107,30 @@ var initGulp = function (gulp, CONFIG) {
                 precision: 8,
                 errLogToConsole: true
             }));
-
-    }
+    };
 
 
     // TODO generalize
     var getEnvironmentPath = function(env){
         var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
         return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
-    }
+    };
 
     // TODO consider refactor to separate file
     gulp.task("styles:dev", function () {
 
         var myFilter = plugins.gulpFilter("**/*.css");
-        /*
-          To prevent async issues & writing to temp files, we need to write to memory stream
-        */
+        //  To prevent async issues & writing to temp files, we need to write to memory stream
         plugins.gulpMerge(
             generateSprites(),
             compileSass())
         .pipe(myFilter)
          // concat sprites.css with bootstrap.css
-        .pipe(plugins.concat("main.css"))
+        .pipe(plugins.concat("css/main.css"))
         .pipe(myFilter.restore())
-        .pipe(gulp.dest(getEnvironmentPath("dev") + "css"));
-
-
-
+        .pipe(gulp.dest(getEnvironmentPath("dev")));
     });
+
     gulp.task("styles:prod", function () {
         compileSass(getEnvironmentPath("prod"));
         generateSprites(getEnvironmentPath("prod"));
