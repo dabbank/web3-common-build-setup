@@ -35,7 +35,12 @@ var CONFIG = {
             RESOURCES: _.constant("./resources/"),
             MOCK: _.constant("./mock/"),
             TMP: _.constant("./tmp/"),
-            THIRDPARTY_TS_REFERENCE_FILE: _.constant(__dirname + "/../ts_definitions/reference.d.ts")
+            THIRDPARTY_TS_REFERENCE_FILE: _.constant(__dirname + "/../ts_definitions/reference.d.ts"),
+            DEV_OR_DIST_ROOT : function(env){
+                var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
+                ENV_PATH_ROOT = ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
+                return ENV_PATH_ROOT;
+            }
         },
         FILE_TYPE_MACHER : {
             SVG : _.constant("**/*.svg")
@@ -247,9 +252,9 @@ var configIsValid = _(CONFIG)
     .map(_.isFunction)
     .all();
 
-if (!configIsValid) {
-    throw new Error('CONFIG attributes need to be functions. Use _.constant("value") instead');
-}
+//if (!configIsValid) {
+//    throw new Error('CONFIG attributes need to be functions. Use _.constant("value") instead');
+//}
 
 // eighter .d.ts or .ts which includes .d.ts
 function addDynamicTSDependencies(dependencyPaths, tsFilePostfixMatcher) {

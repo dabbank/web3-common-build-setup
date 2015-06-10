@@ -21,7 +21,7 @@ var initGulp = function (gulp, CONFIG) {
     plugins.template = require("gulp-template");
     plugins.concat = require("gulp-concat");
     plugins.tsc = require("gulp-tsc");
-
+    plugins.gulpIf = require("gulp-if");
     plugins.ngHtml2js = require("gulp-ng-html2js");
 
     plugins.gulpMerge = require('gulp-merge');
@@ -36,6 +36,7 @@ var initGulp = function (gulp, CONFIG) {
 
     var partials = {};
     partials.errorPipe = gulp_utils.errorPipe;
+
 
     var child_process = require("child_process");
     var _ = require("lodash");
@@ -58,10 +59,10 @@ var initGulp = function (gulp, CONFIG) {
     // "prod:jslibs", moved to global-libs
     gulp.task("prod:once", ["prod"]);
     gulp.task("prod", ["prodFromCommon"]); // use prod only
-    gulp.task("prodFromCommon", ["prod:tscompile", "templates:prod", "styles:prod"]);
+    gulp.task("prodFromCommon", ["prod:tscompile", "prod_STATICS", "templates:prod", "styles:prod"]);
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
-    gulp.task("devFromCommon", ["dev:once", "webserver", "watch"]); // TODO clean
+    gulp.task("devFromCommon", ["dev:once", "dev_STATICS", "webserver", "watch"]); // TODO clean
     gulp.task("dev:once", ["js-thirdparty", "mocks", "resources", "tscompile", "tscompiletests", "templates", "styles:dev"]);
 
     gulp.task("templates", ["templates:dev"]);
@@ -78,24 +79,34 @@ var initGulp = function (gulp, CONFIG) {
         console.log("ECHO!!!!!!" + CONFIG.DEV.ABSOLUTE_FOLDER());
     });
 
-    var generateSprites = function(){
-        plugins.svgSprite = plugins.svgSprite || require("gulp-svg-sprite");
 
-        var spritesConfig = {
-            mode                : {
-                css             : {     // Activate the «css» mode
-                    render      : {
-                        css     : true  // Activate CSS output (with default options)
-                    }
-                }
-            }
-        };
+    gulp.task("dev_STATICS", function(){
+        copyThirdPartyJS("dev");
+    });
+    gulp.task("prod_STATICS", function(){
+        copyThirdPartyJS("prod");
+    });
 
-        var svgSrcFiles = CONFIG.SRC.SPRITES_IMG_BASE_FOLDER() + CONFIG.FILE_TYPE_MACHER.SVG();
+    function copyThirdPartyJS(env) {
+        plugins.uglify = plugins.uglify || require("gulp-uglify");
 
-        return gulp.src(svgSrcFiles)
-            .pipe(plugins.svgSprite(spritesConfig));
+        //gulpInstanceToOverride.src("bower_components/mobile-boilerplate/css/normalize.css")
+        //    .pipe(plugins.gulpIf(isProdEnvironment, plugins.minifyCss()))
+        //    .pipe(gulp.dest(ENV_PATH_ROOT + "/css"));
+        // , "bower_components/mobile-boilerplate/js/helper.js",
+        gulp.src(CONFIG.SRC.JS.LIBS())
+            .pipe(partials.errorPipe())
+            .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
+            .pipe(plugins.concat("lib.js"))
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env) + "js"))
+
+        gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
+            .pipe(partials.errorPipe())
+            .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env) + "js"));
+        ;
     };
+
 
     var compileSass = function(environment){
         plugins.sass = plugins.sass || require("gulp-sass");
@@ -122,7 +133,7 @@ var initGulp = function (gulp, CONFIG) {
         var myFilter = plugins.gulpFilter("**/*.css");
         //  To prevent async issues & writing to temp files, we need to write to memory stream
         plugins.gulpMerge(
-            generateSprites(),
+            require("./tasks/sprites_img/sprites").generateSprites(),
             compileSass())
         .pipe(myFilter)
          // concat sprites.css with bootstrap.css
@@ -171,6 +182,7 @@ var initGulp = function (gulp, CONFIG) {
     //        .pipe(gulp.dest("bower_export/"));
     //});
 
+    // TODO duplicated
     gulp.task("js-thirdparty", function () {
         gulp.src(CONFIG.SRC.JS.LIBS())
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.LIBS()))
@@ -200,8 +212,9 @@ var initGulp = function (gulp, CONFIG) {
 
             var frameContentFileContent = "";
             try {
-                frameContentFileContent = fs.readFileSync(CONFIG.PARTIALS.MAIN());
+                frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
             }catch (err) {
+                console.log("CONFIG.PARTIALS.MAIN()  not found" + err);
                 // If the type is not what you want, then just throw the error again.
                 //if (err.code !== 'ENOENT') throw e;
                 // Handle a file-not-found error
@@ -215,7 +228,7 @@ var initGulp = function (gulp, CONFIG) {
                         css: CONFIG.DIST.CSS.HEAD_FILE(),
                         js: CONFIG.DIST.JS.HEAD_FILES()
                     },
-                    content: frameContentFileContent
+                    frameContent: frameContentFileContent
                 }, {
                     interpolate: /<%gulp=([\s\S]+?)%>/g,
                     evaluate: /<%gulp([\s\S]+?)%>/g
@@ -403,5 +416,7 @@ var initGulp = function (gulp, CONFIG) {
 module.exports.initGulp = initGulp;
 module.exports.depsFolder = __dirname + '/node_modules/';
 module.exports.buildConfig = require(pathToBuildConfig);
+
+
 var gulpUtils = require("./tasks/common/gulp_catch_error");
 module.exports.partials = {"gulp_utils" : gulpUtils};
