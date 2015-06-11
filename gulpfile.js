@@ -43,7 +43,7 @@ var initGulp = function (gulp, CONFIG) {
 
 
     // default by convention of gulp
-    gulp.task("default", function(){
+    gulp.task("default", function () {
         process.stdout.write("\nUse\n");
         process.stdout.write("gulp dev\n");
         process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
@@ -80,10 +80,10 @@ var initGulp = function (gulp, CONFIG) {
     });
 
 
-    gulp.task("dev_STATICS", function(){
+    gulp.task("dev_STATICS", function () {
         copyThirdPartyJS("dev");
     });
-    gulp.task("prod_STATICS", function(){
+    gulp.task("prod_STATICS", function () {
         copyThirdPartyJS("prod");
     });
 
@@ -108,7 +108,7 @@ var initGulp = function (gulp, CONFIG) {
     };
 
 
-    var compileSass = function(environment){
+    var compileSass = function (environment) {
         plugins.sass = plugins.sass || require("gulp-sass");
         //gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
         //    .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + "css"));
@@ -122,7 +122,7 @@ var initGulp = function (gulp, CONFIG) {
 
 
     // TODO generalize
-    var getEnvironmentPath = function(env){
+    var getEnvironmentPath = function (env) {
         var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
         return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
     };
@@ -135,11 +135,11 @@ var initGulp = function (gulp, CONFIG) {
         plugins.gulpMerge(
             require("./tasks/sprites_img/sprites").generateSprites(),
             compileSass())
-        .pipe(myFilter)
-         // concat sprites.css with bootstrap.css
-        .pipe(plugins.concat("css/main.css"))
-        .pipe(myFilter.restore())
-        .pipe(gulp.dest(getEnvironmentPath("dev")));
+            .pipe(myFilter)
+            // concat sprites.css with bootstrap.css
+            .pipe(plugins.concat("css/main.css"))
+            .pipe(myFilter.restore())
+            .pipe(gulp.dest(getEnvironmentPath("dev")));
     });
 
     gulp.task("styles:prod", function () {
@@ -205,7 +205,7 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DIST.JS.DEV_FOLDER()));
     });
 
-    var performTemplating = function(targetFolder, cb){
+    var performTemplating = function (targetFolder, cb) {
 
         function performTemplatingAtBuildTime(targetFolder) {
             npms.fs = npms.fs || require("fs");
@@ -213,8 +213,8 @@ var initGulp = function (gulp, CONFIG) {
             var frameContentFileContent = "";
             try {
                 frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
-            }catch (err) {
-                console.log("CONFIG.PARTIALS.MAIN()  not found" + err);
+            } catch (err) {
+                console.log("Warning: CONFIG.PARTIALS.MAIN()  not found for templating" + err);
                 // If the type is not what you want, then just throw the error again.
                 //if (err.code !== 'ENOENT') throw e;
                 // Handle a file-not-found error
@@ -236,6 +236,7 @@ var initGulp = function (gulp, CONFIG) {
             )
                 .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
         }
+
         performTemplatingAtBuildTime(targetFolder);
         // Angular templating
 
@@ -255,6 +256,7 @@ var initGulp = function (gulp, CONFIG) {
                 .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 
         }
+
         angularTemplating(targetFolder);
 
         cb();
@@ -300,18 +302,66 @@ var initGulp = function (gulp, CONFIG) {
     // TODO only use one tscompile for dev, tests and prod for compact view
     // TODO refactor to dev:tscompile
     function handleJavaScript(tsfiles, doUseSourceMaps, ecmaScriptVersion) {
-        console.log(tsfiles);
-        return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
+        plugins.header = plugins.header || require('gulp-header');
+        npms.fs = npms.fs || require("fs");
+        plugins.insert = plugins.insert || require('gulp-insert');
+
+
+        var tsfiles = tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE());
+
+        console.log("CONFIG.DIST.JS.HEAD_FILES: " + CONFIG.DIST.JS.HEAD_FILES());
+        console.log("CONFIG.DIST.CSS.HEAD_FILES: " + CONFIG.DIST.CSS.HEAD_FILE());
+        console.log("TS-Files " + tsfiles);
+        return gulp.src(tsfiles)
             .pipe(partials.errorPipe())
             .pipe(plugins.tsc(
                 {
                     allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
-                    sourcemap: doUseSourceMaps,
-                    sourceRoot: doUseSourceMaps ? "/" : null,
-                    target: ecmaScriptVersion
+
+                    // otherwise gulp.insert.prepend will not work
+                    sourcemap: false,//doUseSourceMaps,
+                    //sourceRoot: doUseSourceMaps ? "/" : null,
+
+                    target: ecmaScriptVersion,
+                    noImplicitAny : false
                 }))
-            ;
+            // should be put before tsc, but https://github.com/tracker1/gulp-header/issues/13
+            // generateDynamicAppFileDependencyPaths().postfixOnScriptReadyCallback
+            .pipe(plugins.insert.append(generateDynamicAppFileDependencyPaths().postfixOnScriptReadyCallback))
+            .pipe(plugins.insert.prepend(generateDynamicAppFileDependencyPaths().prefixOnScriptReadyCallback))
+        ;
+    }
+
+    function generateDynamicAppFileDependencyPaths() {
+        var dynamicInjectedJsPrefix = "";
+
+        dynamicInjectedJsPrefix += npms.fs.readFileSync(__dirname + "/config/loader/asyncBrowserJSLoader.js");
+        // dynamicInjectedJsPrefix += npms.fs.readFileSync(__dirname + "/config/loader/angular-loader.min.js");
+
+        dynamicInjectedJsPrefix += _.template("window[\"cssDependencyFilePaths\"] = <%=files%>;\n",
+            {files: JSON.stringify(CONFIG.DIST.CSS.HEAD_FILE())});
+        dynamicInjectedJsPrefix += _.template("window[\"jsDependencyFilePaths\"] = <%=files%>;\n",
+            {files: JSON.stringify(CONFIG.DIST.JS.HEAD_FILES())});
+
+        var initApp = "" +
+            "angular.element(document).ready(function () {" +
+             "angular.bootstrap(document.getElementById(window.moduleName), [window.moduleName]);" +
+            "})";
+
+        var prefixOnScriptReadyCallback = "";
+        var postfixOnScriptReadyCallback = "";
+
+        postfixOnScriptReadyCallback += initApp;
+
+        CONFIG.DIST.JS.HEAD_FILES().map(function(filePath){
+            prefixOnScriptReadyCallback += "$script(\"" + filePath + "\" ,function () {\n";
+            postfixOnScriptReadyCallback += "});\n";
+        });
+
+        dynamicInjectedJsPrefix += prefixOnScriptReadyCallback;
+
+        return {prefixOnScriptReadyCallback : dynamicInjectedJsPrefix, postfixOnScriptReadyCallback : postfixOnScriptReadyCallback} ;
     }
 
     gulp.task("tscompile", function () {
@@ -419,4 +469,4 @@ module.exports.buildConfig = require(pathToBuildConfig);
 
 
 var gulpUtils = require("./tasks/common/gulp_catch_error");
-module.exports.partials = {"gulp_utils" : gulpUtils};
+module.exports.partials = {"gulp_utils": gulpUtils};
