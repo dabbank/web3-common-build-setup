@@ -25,7 +25,7 @@ var getCurrentModuleName = function(){
     return bowerJson.name;
 };
 
-// TODO make a function, change dab to vendor
+// TODO make a function
 var dabComponentsDependencies = function (absolutePath){
     var bowerJson = getBowerJson(absolutePath);
     var resolvedDependencies = _(bowerJson.devDependencies)

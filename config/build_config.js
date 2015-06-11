@@ -142,13 +142,12 @@ var CONFIG = {
                     TEMPLATES: _.constant('templates.js')
                 },
                 HEAD_FILES: function () {
-                    return [CONFIG.DIST.JS.FILES.LIBS(),
+                    return [
+                        CONFIG.DIST.JS.FILES.LIBS(),
                         //CONFIG.DIST.JS.FILES.MOCKS(),
                         CONFIG.DIST.JS.FILES.TEMPLATES(),
                         CONFIG.DIST.JS.FILES.APP()
-                    ].map(function(filePath){
-                        return "/" + CONFIG.DIST.ROOT_PREFIX_PATH() + filePath;
-                    });
+                    ];
                 }
             },
             TS: {

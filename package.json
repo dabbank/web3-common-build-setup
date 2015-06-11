@@ -71,14 +71,13 @@
     "typescript": "1.1.0-1",
     "url": "0.10.1",
     "walk": "2.3.4",
-    "inquirer": "0.8.0",
-    "gulp-filter": "2.0.2",
-    "gulp-header": "1.2.2",
-    "gulp-merge": "0.1.0",
-    "gulp-svg-sprite": "1.1.2",
-    "vinyl": "0.4.6"
+    "inquirer": "0.8.0"
   },
   "devDependencies": {
-    "gulp-insert": "^0.4.0"
+    "gulp-filter": "^2.0.2",
+    "gulp-merge": "^0.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-svg-sprite": "^1.1.2",
+    "vinyl": "^0.4.6"
   }
 }
