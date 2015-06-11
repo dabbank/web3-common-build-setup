@@ -326,42 +326,8 @@ var initGulp = function (gulp, CONFIG) {
                     target: ecmaScriptVersion,
                     noImplicitAny : false
                 }))
-            // should be put before tsc, but https://github.com/tracker1/gulp-header/issues/13
-            // generateDynamicAppFileDependencyPaths().postfixOnScriptReadyCallback
-            .pipe(plugins.insert.append(generateDynamicAppFileDependencyPaths().postfixOnScriptReadyCallback))
-            .pipe(plugins.insert.prepend(generateDynamicAppFileDependencyPaths().prefixOnScriptReadyCallback))
+
         ;
-    }
-
-    function generateDynamicAppFileDependencyPaths() {
-        var dynamicInjectedJsPrefix = "";
-
-        dynamicInjectedJsPrefix += npms.fs.readFileSync(__dirname + "/config/loader/asyncBrowserJSLoader.js");
-        // dynamicInjectedJsPrefix += npms.fs.readFileSync(__dirname + "/config/loader/angular-loader.min.js");
-
-        dynamicInjectedJsPrefix += _.template("window[\"cssDependencyFilePaths\"] = <%=files%>;\n",
-            {files: JSON.stringify(CONFIG.DIST.CSS.HEAD_FILE())});
-        dynamicInjectedJsPrefix += _.template("window[\"jsDependencyFilePaths\"] = <%=files%>;\n",
-            {files: JSON.stringify(CONFIG.DIST.JS.HEAD_FILES())});
-
-        var initApp = "" +
-            "angular.element(document).ready(function () {" +
-             "angular.bootstrap(document.getElementById(window.moduleName), [window.moduleName]);" +
-            "})";
-
-        var prefixOnScriptReadyCallback = "";
-        var postfixOnScriptReadyCallback = "";
-
-        postfixOnScriptReadyCallback += initApp;
-
-        CONFIG.DIST.JS.HEAD_FILES().map(function(filePath){
-            prefixOnScriptReadyCallback += "$script(\"" + filePath + "\" ,function () {\n";
-            postfixOnScriptReadyCallback += "});\n";
-        });
-
-        dynamicInjectedJsPrefix += prefixOnScriptReadyCallback;
-
-        return {prefixOnScriptReadyCallback : dynamicInjectedJsPrefix, postfixOnScriptReadyCallback : postfixOnScriptReadyCallback} ;
     }
 
     gulp.task("tscompile", function () {
