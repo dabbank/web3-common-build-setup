@@ -142,9 +142,10 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(getEnvironmentPath("dev")));
     });
 
+    // TODO
     gulp.task("styles:prod", function () {
-        compileSass(getEnvironmentPath("prod"));
-        generateSprites(getEnvironmentPath("prod"));
+        //compileSass(getEnvironmentPath("prod"));
+        // require("./tasks/sprites_img/sprites").generateSprites(getEnvironmentPath("prod"));
     });
 
     // TODO not used yet
