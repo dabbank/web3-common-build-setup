@@ -97,13 +97,13 @@ var initGulp = function (gulp, CONFIG) {
         gulp.src(CONFIG.SRC.JS.LIBS())
             .pipe(partials.errorPipe())
             .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
-            .pipe(plugins.concat("lib.js"))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env) + "js"))
+            .pipe(plugins.concat("libs.js"))
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env))) //  + "js"
 
         gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
             .pipe(partials.errorPipe())
             .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env) + "js"));
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env))); //  + "js"
         ;
     };
 
@@ -183,7 +183,7 @@ var initGulp = function (gulp, CONFIG) {
     //        .pipe(gulp.dest("bower_export/"));
     //});
 
-    // TODO duplicated
+    // TODO duplicated, ld
     gulp.task("js-thirdparty", function () {
         gulp.src(CONFIG.SRC.JS.LIBS())
             .pipe(plugins.concat(CONFIG.DIST.JS.FILES.LIBS()))
