@@ -215,7 +215,7 @@ var initGulp = function (gulp, CONFIG) {
             try {
                 frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
             }catch (err) {
-                console.log("CONFIG.PARTIALS.MAIN()  not found" + err);
+                console.log("Warning:"+CONFIG.PARTIALS.MAIN()  not found" + err);
                 // If the type is not what you want, then just throw the error again.
                 //if (err.code !== 'ENOENT') throw e;
                 // Handle a file-not-found error
