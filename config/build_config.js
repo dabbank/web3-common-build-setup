@@ -184,7 +184,7 @@ var CONFIG = {
                 ];
             },
             WEBSERVER_STARTPATH: function () {
-                return CONFIG.DYNAMIC_META.ROOT_IDENTIFIER() + CONFIG.DYNAMIC_META.MODULE_NAME() + "/index.html" + "#?mockMode=true";
+                return CONFIG.DIST.ROOT_PREFIX_PATH() + "/index.html" + "#?mockMode=true";
             }
             ,
             HTML_MAIN: function () {
