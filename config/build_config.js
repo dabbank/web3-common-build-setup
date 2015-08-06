@@ -232,7 +232,9 @@ var dynamicComponentDependencies = module_dependency_utils.dabComponentsDependen
 
 var matcherForAllTS = "*.ts";
 var dabComponentsDependenciesTSFiles = addDynamicTSDependencies(dynamicComponentDependencies, matcherForAllTS);
-CONFIG.SRC.TS.TS_FILES = _.constant(dabComponentsDependenciesTSFiles.concat(CONFIG.SRC.TS.TS_FILES()));
+CONFIG.SRC.TS.TS_FILES = _.constant([].concat("./src/ts_tpl/initApp.ts").concat(dabComponentsDependenciesTSFiles.concat(CONFIG.SRC.TS.TS_FILES())));
+
+
 
 var matcherForOnlyDTS = "*.d.ts";
 var dabComponentsDependenciesTSFiles_TESTS = addDynamicTSDependencies(dynamicComponentDependencies, matcherForOnlyDTS);
