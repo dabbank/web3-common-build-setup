@@ -20,7 +20,7 @@ var initGulp = function (gulp, CONFIG) {
     var plugins = {};
     plugins.template = require("gulp-template");
     plugins.concat = require("gulp-concat");
-    plugins.tsc = require("gulp-tsc");
+    plugins.typescript = require("gulp-typescript");
     plugins.gulpIf = require("gulp-if");
     plugins.ngHtml2js = require("gulp-ng-html2js");
 
@@ -106,7 +106,6 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env))); //  + "js"
         ;
     };
-
 
     var compileSass = function(environment){
         plugins.sass = plugins.sass || require("gulp-sass");
@@ -303,16 +302,22 @@ var initGulp = function (gulp, CONFIG) {
     // TODO refactor to dev:tscompile
     function handleJavaScript(tsfiles, doUseSourceMaps, ecmaScriptVersion) {
         console.log(tsfiles);
+        var filters = {};
+
         return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
             .pipe(partials.errorPipe())
-            .pipe(plugins.tsc(
+            .pipe(plugins.typescript(
                 {
-                    allowBool: true,
+                    //allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
-                    sourcemap: doUseSourceMaps,
-                    sourceRoot: doUseSourceMaps ? "/" : null,
-                    target: ecmaScriptVersion
-                }))
+
+                    //sourcemap: doUseSourceMaps,
+                    //sourceRoot: doUseSourceMaps ? "/" : null,
+                    //target: ecmaScriptVersion
+
+                })
+        //    , filters, "longReporter"
+        )
             ;
     }
 
@@ -332,7 +337,7 @@ var initGulp = function (gulp, CONFIG) {
         var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         return gulp.src(sourceFiles)
             .pipe(partials.errorPipe())
-            .pipe(plugins.tsc(
+            .pipe(plugins.typescript(
                 {
                     allowBool: true,
                     out: "tests.js",

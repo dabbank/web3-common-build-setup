@@ -35,7 +35,7 @@ var CONFIG = {
             RESOURCES: _.constant("./resources/"),
             MOCK: _.constant("./mock/"),
             TMP: _.constant("./tmp/"),
-            THIRDPARTY_TS_REFERENCE_FILE: _.constant(__dirname + "/../ts_definitions/reference.d.ts"),
+            THIRDPARTY_TS_REFERENCE_FILE: _.constant("./reference.d.ts"),// to be overridden
             DEV_OR_DIST_ROOT : function(env){
                 var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
                 ENV_PATH_ROOT = ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
