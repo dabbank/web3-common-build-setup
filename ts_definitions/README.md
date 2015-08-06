@@ -1,0 +1,1 @@
+move ts_definitions to apps itself

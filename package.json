@@ -21,54 +21,49 @@
   "dependencies": {
     "gulp": "3.9.0",
 
-    "gulp-tslint": "1.3.1",
+    "gulp-tslint": "3.1.2",
     "gulp-typescript": "2.8.0",
 
-    "bower": "1.3.12",
-    "browser-sync": "1.8.3",
+    "bower": "1.4.1",
+    "browser-sync": "2.8.2",
     "canonical-path": "0.0.2",
 
-    "del": "0.1.3",
+    "del": "1.2.0",
     "gulp-clean": "0.3.1",
+    "gulp-watch": "4.3.4",
 
+    "gulp-concat": "2.6.0",
 
-    "gulp-concat": "2.4.1",
-
-    "gulp-css-base64": "1.2.5",
+    "gulp-css-base64": "1.3.2",
     "gulp-if": "1.2.5",
-    "gulp-insert": "0.4.0",
-    "gulp-load-plugins": "0.5.3",
+    "gulp-insert": "0.5.0",
 
-    "gulp-ng-annotate": "0.5.2",
-    "gulp-ng-html2js": "0.1.8",
+    "gulp-ng-annotate": "1.1.0",
+    "gulp-ng-html2js": "0.2.0",
 
-    "gulp-notify": "2.0.0",
-    "gulp-open": "0.2.8",
-    "gulp-plumber": "0.6.6",
+    "gulp-notify": "2.2.0",
+    "gulp-open": "1.0.0",
+    "gulp-plumber": "1.0.1",
 
     "gulp-rename": "1.2.2",
+    "gulp-template": "3.0.0",
+
+    "gulp-uglify": "1.2.0",
+
+    "karma": "0.13.7",
+    "karma-chrome-launcher": "0.2.0",
+    "karma-jasmine": "0.3.6",
+    "karma-phantomjs-launcher": "0.2.1",
+    "karma-sourcemap-loader": "0.3.5",
+
+    "lodash": "3.10.1",
+    "path": "0.11.14",
 
 
-    "gulp-template": "2.0.0",
-
-
-    "gulp-uglify": "1.1.0",
-    "gulp-watch": "1.1.0",
-
-    "karma": "0.12.24",
-    "karma-chrome-launcher": "0.1.5",
-    "karma-jasmine": "0.2.2",
-    "karma-phantomjs-launcher": "0.1.4",
-    "karma-sourcemap-loader": "0.2.0",
-
-    "lodash": "2.4.1",
-    "path": "0.4.9",
-
-
-    "q": "1.0.1",
-    "url": "0.10.1",
-    "walk": "2.3.4",
-    "inquirer": "0.8.0"
+    "q": "1.4.1",
+    "url": "0.10.3",
+    "walk": "2.3.9",
+    "inquirer": "0.9.0"
   },
   "devDependencies": {
   }

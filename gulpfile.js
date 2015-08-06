@@ -17,51 +17,37 @@ var initGulp = function (gulp, CONFIG) {
 
     CONFIG = CONFIG || require(pathToBuildConfig);
 
+    var _ = require("lodash");
     var plugins = {};
-    plugins.template = require("gulp-template");
-    plugins.concat = require("gulp-concat");
+
+
     plugins.typescript = require("gulp-typescript");
     plugins.gulpIf = require("gulp-if");
     plugins.ngHtml2js = require("gulp-ng-html2js");
 
-    // TODO use instead of watchgulp
-
-    //plugins.rename = require("gulp-rename");
-
     var npms = {};
     var gulp_utils = require("./tasks/common/gulp_catch_error");
-
     var partials = {};
     partials.errorPipe = gulp_utils.errorPipe;
 
-
-    var child_process = require("child_process");
-    var _ = require("lodash");
-
-
-    // default by convention of gulp
+    // Running gulp in command line will execute this:
     gulp.task("default", function () {
-        process.stdout.write("\nUse\n");
-        process.stdout.write("gulp dev\n");
-        process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
-        process.stdout.write("------------------\n");
-        process.stdout.write("Use\n");
-        process.stdout.write("gulp prod\n");
-        process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
-        process.stdout.write("------------------\n");
-        process.stdout.write("Use\n");
-        process.stdout.write("gulp help\n");
-        process.stdout.write("for howto - TODO\n");
+        showHelpMessageToConsole();
     });
-    // "prod:jslibs", moved to global-libs
+
+    // TODO make usable in async gulp mode. at the moment you have to run it custom by yourself
+    gulp.task("clean", function (callback) {
+        plugins.del = plugins.del || require("del");
+        plugins.del([CONFIG.DIST.DEV_FOLDER(), CONFIG.DIST.DIST_FOLDER()], callback);
+    });
+
     gulp.task("prod:once", ["prod"]);
     gulp.task("prod", ["prodFromCommon"]); // use prod only
-    gulp.task("prodFromCommon", ["prod:tscompile", "prod_STATICS", "templates:prod"]);
+    gulp.task("prodFromCommon", ["prod:tscompile", "prod:copyStaticFiles", "templates:prod"]);
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
-    gulp.task("devFromCommon", ["dev:once", "dev_STATICS", "webserver", "watch"]); // TODO clean
-    gulp.task("dev:once", ["js-thirdparty", "mocks", "resources", "tscompile", "tscompiletests", "templates"]);
-
+    gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
+    gulp.task("dev:once", ["tscompile", "tscompiletests", "templates"]);
     gulp.task("templates", ["templates:dev"]);
 
     gulp.task("watch", function (cb) {
@@ -71,34 +57,30 @@ var initGulp = function (gulp, CONFIG) {
         gulp.watch(CONFIG.SRC.ALL_HTML_TEMPLATES(), ["templates"]);
     });
 
-    // Example tasks to test inheritance
-    gulp.task("echo", function () {
-        console.log("ECHO!!!!!!" + CONFIG.DEV.ABSOLUTE_FOLDER());
-    });
-
-
-    gulp.task("dev_STATICS", function () {
+    gulp.task("dev:copyStaticFiles", function () {
         copyThirdPartyJS("dev");
+        copyResources(getEnvironmentPath("dev"));
     });
-    gulp.task("prod_STATICS", function () {
+    gulp.task("prod:copyStaticFiles", function () {
         copyThirdPartyJS("prod");
+        copyResources(getEnvironmentPath("prod"));
     });
 
     function copyThirdPartyJS(env) {
         plugins.uglify = plugins.uglify || require("gulp-uglify");
-
+        plugins.concat = require("gulp-concat");
 
         // , "bower_components/mobile-boilerplate/js/helper.js",
         gulp.src(CONFIG.SRC.JS.LIBS())
             .pipe(partials.errorPipe())
             .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
             .pipe(plugins.concat("libs.js"))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env))) //  + "js"
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)))
 
         gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
             .pipe(partials.errorPipe())
             .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env))); //  + "js"
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
         ;
     };
 
@@ -108,18 +90,13 @@ var initGulp = function (gulp, CONFIG) {
         return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
     };
 
+    var copyResources = function(ENV_PATH_ROOT){
+        gulp.src("src/mocks/**/*")
+            .pipe(gulp.dest(ENV_PATH_ROOT + "mocks/"));
 
-    // TODO not used yet
-    gulp.task("cleanTarget", function (callback) {
-        plugins.del = plugins.del || require("del");
-        del([CONFIG.DIST.DEV_FOLDER()], callback);
-    });
-
-    // TODO not used yet
-    gulp.task("resources", function () {
-        gulp.src(CONFIG.DEV_FOLDER.RESOURCES() + "**/*")
-            .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()));
-    });
+        gulp.src("src/img/**/*")
+            .pipe(gulp.dest(ENV_PATH_ROOT + "img/"));
+    };
 
     // TODO not used, yet
     // for dev: use the intellij watcher.xml to import
@@ -136,40 +113,10 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.tslint.report("verbose"));
     });
 
-    // TODO use with repository not linking instead
-    //gulp.task("bump", function () {
-    //    plugins.bump = plugins.bump ||require("gulp-bump");
-    //    gulp.src("bower_export/bower.json")
-    //        .pipe(plugins.bump({version: getBowerJson().version + "+" + Math.random()}))
-    //        .pipe(gulp.dest("bower_export/"));
-    //});
-
-    // TODO duplicated, ld
-    gulp.task("js-thirdparty", function () {
-        gulp.src(CONFIG.SRC.JS.LIBS())
-            .pipe(plugins.concat(CONFIG.DIST.JS.FILES.LIBS()))
-            .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + CONFIG.DIST.ROOT_PREFIX_PATH()));
-
-        gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
-            .pipe(gulp.dest(CONFIG.DIST.ROOT_PREFIX_PATH()));
-    });
-
-    // TODO duplicated
-    gulp.task("mocks", function () {
-        gulp.src(CONFIG.SRC.JS.MOCK_FILES())
-            .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + CONFIG.DIST.ROOT_PREFIX_PATH()));
-    });
-
-    gulp.task("js-app", function () {
-        gulp.src(CONFIG.SRC.JS.FILES())
-            .pipe(partials.errorPipe())
-            .pipe(plugins.concat(CONFIG.DIST.JS.FILES.APP()))
-            .pipe(gulp.dest(CONFIG.DIST.JS.DEV_FOLDER()));
-    });
-
     var performTemplating = function (targetFolder, cb) {
 
         function performTemplatingAtBuildTime(targetFolder) {
+            plugins.template = require("gulp-template");
             npms.fs = npms.fs || require("fs");
 
             var frameContentFileContent = "";
@@ -207,6 +154,8 @@ var initGulp = function (gulp, CONFIG) {
         });
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
+            plugins.concat = require("gulp-concat");
+
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + "Templatecache",
@@ -344,42 +293,22 @@ var initGulp = function (gulp, CONFIG) {
         }, done);
     });
 
-    // If not started in chromeOnly-mode, need to start selenium first
-    // TODO switch for non chromeOnly mode
-    gulp.task("protractor", function () {
-        npms.protractor = npms.protractor || require("gulp-protractor").protractor;
-
-        // TODO must be in sync with specs of protractor
-        //var srcNeeededForIntegrTest = "src/**/*.js";
-        gulp.src([
-//            CONFIG.DEV.UI_TEST_FILES()
-            // CONFIG.DEV.ABSOLUTE_FOLDER()+"features/**/*.feature"
-        ])
-            .pipe(npms.protractor({
-                //options : {
-                configFile: CONFIG.DEV.PROTRACTOR_CONFIG()
-                //args: {
-                //    "specs" : ["whoo.js"]
-                //}
-                //}
-            }))
-            .on("error", function (e) {
-                console.log(JSON.stringify(e));
-                throw e;
-            });
-    });
-
-    // TODO used for CI and other browsers, atm chromeOnly mode is used to be fast
-    gulp.task("seleniumServer", function () {
-        var webdriverPath = __dirname + "node_modules\\chromedriver\\lib\\chromedriver\\chromedriver.exe";
-        var command = "java -jar " + __dirname + "\\node_modules\\selenium-server-standalone-jar\\jar\\selenium-server-standalone-2.40.0.jar -Dwebdriver.chrome.driver=" + webdriverPath;
-        exec(command, function (status, output) {
-            console.log("Exit status:", status);
-            console.log("Program output:", output);
-        });
-    });
-
     // TODO use tsdocs
+
+
+    var showHelpMessageToConsole = function(){
+        process.stdout.write("\nUse\n");
+        process.stdout.write("gulp dev\n");
+        process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
+        process.stdout.write("------------------\n");
+        process.stdout.write("Use\n");
+        process.stdout.write("gulp prod\n");
+        process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
+        process.stdout.write("------------------\n");
+        process.stdout.write("Use\n");
+        process.stdout.write("gulp help\n");
+        process.stdout.write("for howto - TODO\n");
+    };
 
     return gulp;
 };
