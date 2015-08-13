@@ -17,13 +17,12 @@ var initGulp = function (gulp, CONFIG) {
 
     CONFIG = CONFIG || require(pathToBuildConfig);
 
-    var _ = require("lodash");
     var plugins = {};
-
 
     plugins.typescript = require("gulp-typescript");
     plugins.gulpIf = require("gulp-if");
     plugins.ngHtml2js = require("gulp-ng-html2js");
+    plugins.runSequence = require("run-sequence").use(gulp);
 
     var npms = {};
     var gulp_utils = require("./tasks/common/gulp_catch_error");
@@ -51,10 +50,17 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("templates", ["templates:dev"]);
 
     gulp.task("watch", function (cb) {
-        plugins.watch = plugins.watch || require("gulp-watch");
-        gulp.watch(CONFIG.SRC.TS.TS_FILES(), ["tscompile"]);
-        gulp.watch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), ["tscompiletests"]);
-        gulp.watch(CONFIG.SRC.ALL_HTML_TEMPLATES(), ["templates"]);
+        plugins.gwatch = require("gulp-watch");
+
+        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
+            plugins.runSequence(["tscompile"]);
+        }, cb);
+        plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
+            plugins.runSequence(["tscompiletests"]);
+        }, cb);
+        plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
+            plugins.runSequence(["templates"]);
+        }, cb);
     });
 
     gulp.task("dev:copyStaticFiles", function () {
