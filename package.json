@@ -50,7 +50,15 @@
     "q": "1.4.1",
     "run-sequence": "1.1.2",
     "url": "0.10.3",
-    "walk": "2.3.9"
+    "walk": "2.3.9",
+
+
+
+    "gulp-filter": "2.0.2",
+    "gulp-merge": "0.1.1",
+    "gulp-svg-sprite": "1.1.2",
+    "gulp-sass": "2.0.4",
+    "vinyl": "0.4.6"
   },
   "devDependencies": {}
 }

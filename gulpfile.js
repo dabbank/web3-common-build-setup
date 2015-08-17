@@ -248,6 +248,20 @@ var initGulp = function (gulp, CONFIG) {
             ;
     }
 
+    gulp.task("dev:styles", function () {
+        gulp_utils.sass = require("./tasks/styles/sass");
+
+        var envPath = getEnvironmentPath("dev");
+        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+    });
+
+    gulp.task("prod:styles", function () {
+        gulp_utils.sass = require("./tasks/styles/sass");
+
+        var envPath = getEnvironmentPath("prod");
+        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+    });
+
     gulp.task("tscompile", function () {
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         var ecmaScriptVersion = "ES5";
