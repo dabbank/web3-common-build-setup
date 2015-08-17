@@ -22,7 +22,7 @@ var initGulp = function (gulp, CONFIG) {
     plugins.typescript = require("gulp-typescript");
     plugins.gulpIf = require("gulp-if");
     plugins.ngHtml2js = require("gulp-ng-html2js");
-    plugins.runSequence = require("run-sequence").use(gulp);
+
 
     var npms = {};
     var gulp_utils = require("./tasks/common/gulp_catch_error");
@@ -50,11 +50,18 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("templates", ["templates:dev"]);
 
     gulp.task("watch", function (cb) {
+        plugins.runSequence = require("run-sequence").use(gulp);
         plugins.gwatch = require("gulp-watch");
+
+        // TODO copy also on all changed assets and libs dev:copyStaticFiles
+        plugins.gwatch(CONFIG.DEV.HTML_MAIN(), function () {
+            plugins.runSequence(["templates:dev"]);
+        }, cb);
 
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
             plugins.runSequence(["tscompile"]);
         }, cb);
+
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
             plugins.runSequence(["tscompiletests"]);
         }, cb);
