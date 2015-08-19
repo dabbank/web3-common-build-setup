@@ -46,7 +46,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "templates"]);
+    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "templates","dev:styles"]);
     gulp.task("templates", ["templates:dev"]);
 
     gulp.task("watch", function (cb) {
@@ -64,6 +64,10 @@ var initGulp = function (gulp, CONFIG) {
 
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
         	plugins.runSequence(["tscompiletests"]);
+        }, cb);
+        
+        plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {        	        	
+        	plugins.runSequence(["dev:styles"]);
         }, cb);
         
         plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {

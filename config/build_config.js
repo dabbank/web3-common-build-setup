@@ -42,6 +42,9 @@ var CONFIG = {
                 return ENV_PATH_ROOT;
             }
         },
+        FILE_TYPE: {
+        	SCSS: _.constant("**/*.scss")       	
+        },
         FILE_TYPE_MACHER : {
             SVG : _.constant("**/*.svg")
         },
@@ -53,12 +56,9 @@ var CONFIG = {
             INIT_APP_TEMPLATE: function () {
                 return CONFIG.DEV_FOLDER.SRC() + "app/initapp.tpl";
             },
-            // TODO duplicated
-            SASS_FOLDER: function () {
-                return CONFIG.DEV_FOLDER.SRC() + CONFIG.DEV_FOLDER.SASS();
-            },
-            SASS_MAIN: function () {
-                return CONFIG.SRC.SASS_FOLDER() + "main.scss";
+            
+            SASS_FILES: function () {
+                return CONFIG.DEV_FOLDER.SRC() + CONFIG.FILE_TYPE.SCSS();
             },
             JS: {
                 LIBS: _.constant(bowerLibFilesToConcat_DEV),

@@ -14,8 +14,8 @@ var compileSass = function (environment) {
     plugins.sass = plugins.sass || require("gulp-sass");
     //gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
     //    .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + "css"));
-
-    return gulp.src(CONFIG.SRC.SASS_MAIN())
+    console.log("Compiling sass files..");
+    return gulp.src(CONFIG.SRC.SASS_FILES())
         .pipe(plugins.sass({
             precision: 8,
             errLogToConsole: true
