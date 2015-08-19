@@ -46,7 +46,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tscompile", "tscompiletests", "templates"]);
+    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "templates"]);
     gulp.task("templates", ["templates:dev"]);
 
     gulp.task("watch", function (cb) {
@@ -58,16 +58,18 @@ var initGulp = function (gulp, CONFIG) {
             plugins.runSequence(["templates:dev"]);
         }, cb);
 
-        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
-            plugins.runSequence(["tscompile"]);
+        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {        	        	
+        	plugins.runSequence(["tscompile","tslint"]);
         }, cb);
 
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
-            plugins.runSequence(["tscompiletests"]);
+        	plugins.runSequence(["tscompiletests"]);
         }, cb);
+        
         plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
             plugins.runSequence(["templates"]);
         }, cb);
+        
     });
 
     gulp.task("dev:copyStaticFiles", function () {
@@ -118,9 +120,10 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("tslint", function () {
         plugins.tslint = plugins.tslint || require('gulp-tslint');
         // TODO cache and move
-        var tslintConfig = require("./tslint.json");
-
-        gulp.src(["src/**/*.ts"])
+        var tslintConfig = require(CONFIG.DEV.TSLINT_CONFIG());
+              
+        
+        gulp.src(CONFIG.SRC.TS.TS_FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.tslint({configuration: tslintConfig}))
             .pipe(plugins.tslint.report("verbose"));

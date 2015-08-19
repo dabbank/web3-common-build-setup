@@ -206,6 +206,7 @@ var CONFIG = {
             // TODO refactor
             PROTRACTOR_CONFIG: _.constant(__dirname + "/protractor.config.js"),
             KARMA_CONFIG: _.constant(__dirname + "/karma.conf.js"),
+            TSLINT_CONFIG: _.constant(__dirname + "/tslint.json"),
             NG_MODULE_DEPS: function () {
                 return [];
             }
