@@ -149,22 +149,30 @@ var initGulp = function (gulp, CONFIG) {
             try {
                 frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
             } catch (err) {
-                console.log("Warning: " + CONFIG.PARTIALS.MAIN() + " not found " + err);
+                console.log("Info: " + CONFIG.PARTIALS.MAIN() + " not found to use templating at buildtime" + err);
                 // If the type is not what you want, then just throw the error again.
                 //if (err.code !== 'ENOENT') throw e;
                 // Handle a file-not-found error
             }
 
+            var templateVariables = {
+                CONFIG : {
+                    DIST : {
+                        JS : {
+                            HEAD_FILES : CONFIG.DIST.JS.HEAD_FILES()
+                        },
+                        CSS : {
+                            HEAD_FILES : CONFIG.DIST.CSS.HEAD_FILES()
+                        }
+                    }
+                },
+                frameContent: frameContentFileContent
+            };
+
             gulp.src(CONFIG.DEV.HTML_MAIN())
                 .pipe(partials.errorPipe())
                 .pipe(
-                plugins.template({
-                    headFiles: {
-                        css: CONFIG.DIST.CSS.HEAD_FILE(),
-                        js: CONFIG.DIST.JS.HEAD_FILES()
-                    },
-                    frameContent: frameContentFileContent
-                }, {
+                plugins.template(templateVariables, {
                     interpolate: /<%gulp=([\s\S]+?)%>/g,
                     evaluate: /<%gulp([\s\S]+?)%>/g
                 })

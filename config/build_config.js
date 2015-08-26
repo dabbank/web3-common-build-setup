@@ -162,7 +162,7 @@ var CONFIG = {
                 WATCH_FILES: function () {
                     return CONFIG.DIST.CSS.DEV_FOLDER() + '**/*.scss';
                 },
-                HEAD_FILE: function () {
+                HEAD_FILES: function () {
                     return CONFIG.DEV_FOLDER.CSS() + CONFIG.DIST.CSS.CSS_MAIN();
                 }
             }
