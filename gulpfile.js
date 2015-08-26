@@ -42,21 +42,31 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("prod:once", ["prod"]);
     gulp.task("prod", ["prodFromCommon"]); // use prod only
-    gulp.task("prodFromCommon", ["prod:tscompile", "prod:copyStaticFiles", "templates:prod"]);
+    gulp.task("prodFromCommon", ["prod:tscompile", "prod:copyStaticFiles", "prod:templates"]);
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "templates","dev:styles"]);
-    gulp.task("templates", ["templates:dev"]);
+    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "dev:templates","dev:styles"]);
 
     gulp.task("watch", function (cb) {
         plugins.runSequence = require("run-sequence").use(gulp);
         plugins.gwatch = require("gulp-watch");
 
+        plugins.gwatch("./src/mocks/**", function () {
+            plugins.runSequence(["dev:copyStaticFiles"]);
+        }, cb);
+        plugins.gwatch("./src/img/**", function () {
+            plugins.runSequence(["dev:copyStaticFiles"]);
+        }, cb);
+
         // TODO copy also on all changed assets and libs dev:copyStaticFiles
         plugins.gwatch(CONFIG.DEV.HTML_MAIN(), function () {
-            plugins.runSequence(["templates:dev"]);
+            plugins.runSequence(["dev:templates"]);
         }, cb);
+        plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
+            plugins.runSequence(["dev:templates"]);
+        }, cb);
+
 
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {        	        	
         	plugins.runSequence(["tscompile","tslint"]);
@@ -68,10 +78,6 @@ var initGulp = function (gulp, CONFIG) {
         
         plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {        	        	
         	plugins.runSequence(["dev:styles"]);
-        }, cb);
-        
-        plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
-            plugins.runSequence(["templates"]);
         }, cb);
         
     });
@@ -196,13 +202,13 @@ var initGulp = function (gulp, CONFIG) {
 
     // TODO refactor to split "lodash build templating" and angular templating
 
-    gulp.task("templates:dev", function (cb) {
+    gulp.task("dev:templates", function (cb) {
         var targetFolder = CONFIG.DIST.DEV_FOLDER();
         performTemplating(targetFolder, cb);
     });
 
     // TODO index should not be delivered to prod
-    gulp.task("templates:prod", function (cb) {
+    gulp.task("prod:templates", function (cb) {
         var targetFolder = CONFIG.DIST.DIST_FOLDER();
         performTemplating(targetFolder, cb);
     });

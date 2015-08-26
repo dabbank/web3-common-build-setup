@@ -74,14 +74,14 @@ var CONFIG = {
                 // Dynamically extended by devDependency components
                 TS_FILES: function () {
                     return [
-                        CONFIG.DEV_FOLDER.SRC() + "**/*.ts",
+                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*.ts",
                         "!" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
                     ];
                 },
                 // No dynamic dependencies needed
                 TS_UNIT_TEST_FILES: function () {
                     return [
-                        CONFIG.DEV_FOLDER.SRC() + "**/*Test.d.ts",
+                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*Test.d.ts",
                         CONFIG.DEV_FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
                     ];
                 },
@@ -127,7 +127,6 @@ var CONFIG = {
             ROOT_PREFIX_PATH: function () {
                 return CONFIG.DYNAMIC_META.ROOT_IDENTIFIER() + CONFIG.DYNAMIC_META.MODULE_NAME() + "/";
             },
-
             FILES: function () {
                 return CONFIG.DIST.DEV_FOLDER() + "**/*";
             },
