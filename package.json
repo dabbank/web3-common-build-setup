@@ -60,5 +60,11 @@
     "gulp-sass": "2.0.4",
     "vinyl": "0.4.6"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+
+  "scripts": {
+    "preinstall": "npm install gulp",
+    "postinstall": "npm link;",
+    "test": ""
+  }
 }
