@@ -64,7 +64,7 @@
 
   "scripts": {
     "preinstall": "npm install gulp",
-    "postinstall": "npm link;",
+    "postinstall": "",
     "test": ""
   }
 }
