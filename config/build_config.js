@@ -96,7 +96,7 @@ var CONFIG = {
                 GLOBAL_TS_UNIT_TEST_FILES: _.constant("**/*Test.ts") // must be global in TS_FILES
             },
             ANGULAR_HTMLS: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "**/*.tpl.html";
+                return CONFIG.DEV_FOLDER.SRC() + "/ts_tpl/**/*.tpl.html";
             },
             ALL_HTML_TEMPLATES: function () {
                 return CONFIG.DEV_FOLDER.SRC() + "**/*.html";

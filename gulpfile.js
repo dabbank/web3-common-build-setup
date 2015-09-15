@@ -193,8 +193,10 @@ var initGulp = function (gulp, CONFIG) {
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + "Templatecache",
-
-                    prefix: "/"
+                    prefix: "",
+                    rename : function (templateUrl, templateFile) {
+                	  return "/"+CONFIG.DIST.ROOT_PREFIX_PATH() + templateUrl;
+                	}
                 }))
                 .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
@@ -241,7 +243,8 @@ var initGulp = function (gulp, CONFIG) {
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
             },
-            startPath: CONFIG.DEV.WEBSERVER_STARTPATH()
+            startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
+            port : 9000
         });
     });
 
