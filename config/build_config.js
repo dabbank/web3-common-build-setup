@@ -14,16 +14,9 @@ var module_dependency_utils = require('./../tasks/common/module_dependency_utils
 var bowerFolder = 'bower_components/';
 
 var bowerLibFilesToConcat = [
-    'angular/angular.js',
-    'angular-bootstrap/ui-bootstrap.js',
-    'angular-bootstrap/ui-bootstrap-tpls.js',
-    'angular-i18n/angular-locale_de-de.js'
 ];
 var bowerLibFilesToConcat_DEV = toFullPath(bowerLibFilesToConcat, bowerFolder);
-
 var bowerSingleLibFilesNoConcat = [
-    'json3/lib/json3.js',
-    'angular-ui-utils/ui-utils-ieshiv.js'
 ];
 var bowerSingleLibFilesNoConcat_DEV = toFullPath(bowerSingleLibFilesNoConcat, bowerFolder);
 
@@ -93,7 +86,7 @@ var CONFIG = {
                     ];
                 },
                 // TODO move to general files
-                GLOBAL_TS_UNIT_TEST_FILES: _.constant("**/*Test.ts") // must be global in TS_FILES
+                GLOBAL_TS_UNIT_TEST_FILES: _.constant("ts_tpl/**/*Test.ts") // must be global in TS_FILES
             },
             ANGULAR_HTMLS: function () {
                 return CONFIG.DEV_FOLDER.SRC() + "/ts_tpl/**/*.tpl.html";
@@ -190,7 +183,7 @@ var CONFIG = {
                 return CONFIG.DEV_FOLDER.SRC() + "index.html";
             }
             ,
-            ABSOLUTE_FOLDER: _.constant(path.resolve() + "\\"),
+            ABSOLUTE_FOLDER: _.constant(path.resolve()), // used for windows "\\"
             CURRENT_APP: _.constant(path.basename()),
             STANDALONE_FOLDER: function () {
                 return CONFIG.DIST.DEV_FOLDER();

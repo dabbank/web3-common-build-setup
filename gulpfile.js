@@ -71,7 +71,7 @@ var initGulp = function (gulp, CONFIG) {
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {        	        	
         	plugins.runSequence(["tscompile","tslint"]);
         }, cb);
-
+console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
         	plugins.runSequence(["tscompiletests"]);
         }, cb);

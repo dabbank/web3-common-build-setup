@@ -7,8 +7,7 @@ module.exports = function(karmaConfig) {
     folderToSRC = _.clone(CONFIG.DEV.ABSOLUTE_FOLDER());
     var commonSetupModule = "web3-common-build-setup";
     var isStandaloneExecutedByIntelliJ = CONFIG.DEV.ABSOLUTE_FOLDER().indexOf(commonSetupModule) > -1;
-
-
+console.log("ABSOLUTE"+CONFIG.DEV.ABSOLUTE_FOLDER());
     if(isStandaloneExecutedByIntelliJ){
         var toAppFolderPath = folderToSRC.indexOf("\\node_modules");
         folderToSRC = folderToSRC.substring(0, toAppFolderPath);
@@ -30,15 +29,11 @@ module.exports = function(karmaConfig) {
 
         // TODO use CONFIG
         files: [
-            {pattern: "src/**/*Test.ts", watched: false, included: false, served: true},
-            {pattern: "src/**/*.ts", watched: false, included: false, served: true},
-            {pattern: "tmp/tests/tests.js.map", watched: false, included: false, served: true},
-            {pattern: "target/app.js.map", watched: false, included: false, served: true},
-            'target/libs.js',
-            "bower_components/angular-mocks/angular-mocks.js",
-            'target/templates.js',
-            "target/app.js",
-            'tmp/tests/tests.js'
+            {pattern: "tmp/tests/tests.js", watched: false, included: false, served: true},
+            'dev_target/web3/danube-common-portal/libs.js',
+              'dev_target/web3/danube-common-portal/templates.js',
+  'dev_target/web3/danube-common-portal/app.js'
+
 
             //folderToSRC+ '/'+'gulp-tsc-tmp-114915-7264-52gdcc/app.js.map'
         ],
