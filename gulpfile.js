@@ -46,7 +46,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tslint","tscompile", "tscompiletests", "dev:templates","dev:styles"]);
+    gulp.task("dev:once", ["tslint", "tscompile", "tscompiletests", "dev:templates", "dev:styles"]);
 
     gulp.task("watch", function (cb) {
         plugins.runSequence = require("run-sequence").use(gulp);
@@ -68,18 +68,18 @@ var initGulp = function (gulp, CONFIG) {
         }, cb);
 
 
-        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {        	        	
-        	plugins.runSequence(["tscompile","tslint"]);
+        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
+            plugins.runSequence(["tscompile", "tslint"]);
         }, cb);
-console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
+        console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
-        	plugins.runSequence(["tscompiletests"]);
+            plugins.runSequence(["tscompiletests"]);
         }, cb);
-        
-        plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {        	        	
-        	plugins.runSequence(["dev:styles"]);
+
+        plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {
+            plugins.runSequence(["dev:styles"]);
         }, cb);
-        
+
     });
 
     gulp.task("dev:copyStaticFiles", function () {
@@ -115,7 +115,7 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
     };
 
-    var copyResources = function(ENV_PATH_ROOT){
+    var copyResources = function (ENV_PATH_ROOT) {
         gulp.src("src/mocks/**/*")
             .pipe(gulp.dest(ENV_PATH_ROOT + "mocks/"));
 
@@ -131,8 +131,8 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         plugins.tslint = plugins.tslint || require('gulp-tslint');
         // TODO cache and move
         var tslintConfig = require(CONFIG.DEV.TSLINT_CONFIG());
-              
-        
+
+
         gulp.src(CONFIG.SRC.TS.TS_FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.tslint({configuration: tslintConfig}))
@@ -140,47 +140,6 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
     });
 
     var performTemplating = function (targetFolder, cb) {
-
-        function performTemplatingAtBuildTime(targetFolder) {
-            plugins.template = require("gulp-template");
-            npms.fs = npms.fs || require("fs");
-
-            var frameContentFileContent = "";
-            try {
-                frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
-            } catch (err) {
-                console.log("Info: " + CONFIG.PARTIALS.MAIN() + " not found to use templating at buildtime" + err);
-                // If the type is not what you want, then just throw the error again.
-                //if (err.code !== 'ENOENT') throw e;
-                // Handle a file-not-found error
-            }
-
-            var templateVariables = {
-                CONFIG : {
-                    DIST : {
-                        JS : {
-                            HEAD_FILES : CONFIG.DIST.JS.HEAD_FILES()
-                        },
-                        CSS : {
-                            HEAD_FILES : CONFIG.DIST.CSS.HEAD_FILES()
-                        }
-                    }
-                },
-                frameContent: frameContentFileContent
-            };
-
-            gulp.src(CONFIG.DEV.HTML_MAIN())
-                .pipe(partials.errorPipe())
-                .pipe(
-                plugins.template(templateVariables, {
-                    interpolate: /<%gulp=([\s\S]+?)%>/g,
-                    evaluate: /<%gulp([\s\S]+?)%>/g
-                })
-            )
-                .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
-        }
-
-        performTemplatingAtBuildTime(targetFolder);
         // Angular templating
 
         var camelCaseModuleName = CONFIG.DYNAMIC_META.MODULE_NAME().replace(/-([a-z])/g, function (g) {
@@ -194,9 +153,9 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + "Templatecache",
                     prefix: "",
-                    rename : function (templateUrl, templateFile) {
-                	  return "/"+CONFIG.DIST.ROOT_PREFIX_PATH() + templateUrl;
-                	}
+                    rename: function (templateUrl, templateFile) {
+                        return "/" + CONFIG.DIST.ROOT_PREFIX_PATH() + templateUrl;
+                    }
                 }))
                 .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
@@ -244,7 +203,7 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
             },
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
-            port : 9000
+            port: 9000
         });
     });
 
@@ -261,7 +220,7 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
                 {
                     //allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
-                    sortOutput : true
+                    sortOutput: true
                     //sourcemap: doUseSourceMaps,
                     //sourceRoot: doUseSourceMaps ? "/" : null,
                     //target: ecmaScriptVersion
@@ -347,7 +306,7 @@ console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
     // TODO use tsdocs
 
 
-    var showHelpMessageToConsole = function(){
+    var showHelpMessageToConsole = function () {
         process.stdout.write("\nUse\n");
         process.stdout.write("gulp dev\n");
         process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");

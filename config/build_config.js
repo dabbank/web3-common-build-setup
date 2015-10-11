@@ -110,6 +110,7 @@ var CONFIG = {
             SPRITES_IMG_BASE_FOLDER: function () {
                 return CONFIG.DEV_FOLDER.SRC() + CONFIG.DEV_FOLDER.SASS() + "sprites/svg/";
             },
+            //TODO duplicated
             SASS_TARGET_FOLDER: function () {
                 return CONFIG.DIST.DEV_FOLDER();
             }
@@ -120,10 +121,12 @@ var CONFIG = {
             ROOT_PREFIX_PATH: function () {
                 return CONFIG.DYNAMIC_META.ROOT_IDENTIFIER() + CONFIG.DYNAMIC_META.MODULE_NAME() + "/";
             },
+            //TODO duplicated in a way
             FILES: function () {
                 return CONFIG.DIST.DEV_FOLDER() + "**/*";
             },
             JS: {
+                //TODO duplicated
                 DEV_FOLDER: function () {
                     return CONFIG.DIST.DEV_FOLDER();
                 },
@@ -176,7 +179,7 @@ var CONFIG = {
                 ];
             },
             WEBSERVER_STARTPATH: function () {
-                return CONFIG.DIST.ROOT_PREFIX_PATH() + "/index.html" + "#?mockMode=true";
+                return CONFIG.DIST.ROOT_PREFIX_PATH() + "/index.html";
             }
             ,
             HTML_MAIN: function () {

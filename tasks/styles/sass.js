@@ -2,7 +2,6 @@
 var gulp = require("gulp");
 
 var pathToBuildConfig = "../../config/build_config.js";
-
 var CONFIG = CONFIG || require(pathToBuildConfig);
 
 var svgSrcFiles = CONFIG.SRC.SPRITES_IMG_BASE_FOLDER() + CONFIG.FILE_TYPE_MACHER.SVG();
