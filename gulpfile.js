@@ -46,7 +46,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
     gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tslint", "tscompile", "tscompiletests", "dev:templates", "dev:styles"]);
+    gulp.task("dev:once", ["tslint", "tscompile", "tscompiletests", "dev:templates", "dev:styles", "dev:copyStaticFiles"]);
 
     gulp.task("watch", function (cb) {
         plugins.runSequence = require("run-sequence").use(gulp);
