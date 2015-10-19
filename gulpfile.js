@@ -19,116 +19,115 @@ var initGulp = function (gulp, CONFIG) {
 
     var plugins = {};
 
-    plugins.typescript = require("gulp-typescript");
-    plugins.gulpIf = require("gulp-if");
-    plugins.ngHtml2js = require("gulp-ng-html2js");
+    plugins.typescript = require(CONFIG.GULP.TYPESCRIPT);
+    plugins.gulpIf = require(CONFIG.GULP.GULPIF);
+    plugins.ngHtml2js = require(CONFIG.GULP.HTML2JS);
 
 
     var npms = {};
-    var gulp_utils = require("./tasks/common/gulp_catch_error");
+    var gulp_utils = require(CONFIG.GULP.PATH.CATCH_ERROR_JS);
     var partials = {};
     partials.errorPipe = gulp_utils.errorPipe;
 
     // Running gulp in command line will execute this:
-    gulp.task("default", function () {
-        showHelpMessageToConsole();
+    gulp.task(CONFIG.GULP.TASK.DEFAULT, function () {
+        CONFIG.GULP.SHOW_HELP_MESSAGE_TO_CONSOLE();
     });
 
     // TODO make usable in async gulp mode. at the moment you have to run it custom by yourself
-    gulp.task("clean", function (callback) {
-        plugins.del = plugins.del || require("del");
+    gulp.task(CONFIG.GULP.TASK.CLEAN, function (callback) {
+        plugins.del = plugins.del || require(CONFIG.GULP.DEL);
         plugins.del([CONFIG.DIST.DEV_FOLDER(), CONFIG.DIST.DIST_FOLDER()], callback);
     });
 
-    gulp.task("prod:once", ["prod"]);
-    gulp.task("prod", ["prodFromCommon"]); // use prod only
-    gulp.task("prodFromCommon", ["prod:tscompile", "prod:copyStaticFiles", "prod:templates"]);
+    gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
+    gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE,CONFIG.GULP.PROD_COPY_STATIC_FILES,CONFIG.GULP.PROD_TEMPLATES]);
 
-    gulp.task("dev", ["devFromCommon"]);//"openBrowser" "tscopysrc"
-    gulp.task("devFromCommon", ["dev:once", "dev:copyStaticFiles", "webserver", "watch"]);
-    gulp.task("dev:once", ["tslint", "tscompile", "tscompiletests", "dev:templates", "dev:styles", "dev:copyStaticFiles"]);
+    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER,CONFIG.GULP.TASK.WATCH]);
+    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT,CONFIG.GULP.TSCOMPILE,CONFIG.GULP.TS_COMPILE_TESTS, CONFIG.GULP.DEV_TEMPLATES,CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
 
-    gulp.task("watch", function (cb) {
-        plugins.runSequence = require("run-sequence").use(gulp);
-        plugins.gwatch = require("gulp-watch");
+    gulp.task(CONFIG.GULP.TASK.WATCH, function (cb) {
+        plugins.runSequence = require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
+        plugins.gwatch = require(CONFIG.GULP.GULP_WATCH);
 
-        plugins.gwatch("./src/mocks/**", function () {
-            plugins.runSequence(["dev:copyStaticFiles"]);
+        plugins.gwatch(CONFIG.GULP.PATH.GWATCH_MOCKS, function () {
+            plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
         }, cb);
-        plugins.gwatch("./src/img/**", function () {
-            plugins.runSequence(["dev:copyStaticFiles"]);
+        plugins.gwatch(CONFIG.GULP.PATH.GWATCH_IMG, function () {
+            plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
         }, cb);
 
         // TODO copy also on all changed assets and libs dev:copyStaticFiles
         plugins.gwatch(CONFIG.DEV.HTML_MAIN(), function () {
-            plugins.runSequence(["dev:templates"]);
+            plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
         }, cb);
         plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
-            plugins.runSequence(["dev:templates"]);
+            plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
         }, cb);
 
 
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
-            plugins.runSequence(["tscompile", "tslint"]);
+            plugins.runSequence([CONFIG.GULP.TSCOMPILE,CONFIG.GULP.TSLINT]);
         }, cb);
         console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
-            plugins.runSequence(["tscompiletests"]);
+            plugins.runSequence([CONFIG.GULP.TS_COMPILE_TESTS]);
         }, cb);
 
         plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {
-            plugins.runSequence(["dev:styles"]);
+            plugins.runSequence([CONFIG.GULP.DEV_STYLES]);
         }, cb);
 
     });
 
-    gulp.task("dev:copyStaticFiles", function () {
-        copyThirdPartyJS("dev");
-        copyResources(getEnvironmentPath("dev"));
+    gulp.task(CONFIG.GULP.DEV_COPY_STATIC_FILES, function () {
+        copyThirdPartyJS(CONFIG.GULP.DEV);
+        copyResources(getEnvironmentPath(CONFIG.GULP.DEV));
     });
-    gulp.task("prod:copyStaticFiles", function () {
-        copyThirdPartyJS("prod");
-        copyResources(getEnvironmentPath("prod"));
+    gulp.task(CONFIG.GULP.PROD_COPY_STATIC_FILES, function () {
+        copyThirdPartyJS(CONFIG.GULP.PROD);
+        copyResources(getEnvironmentPath(CONFIG.GULP.PROD));
     });
 
     function copyThirdPartyJS(env) {
-        plugins.uglify = plugins.uglify || require("gulp-uglify");
-        plugins.concat = require("gulp-concat");
+        plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+        plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
 
         // , "bower_components/mobile-boilerplate/js/helper.js",
         gulp.src(CONFIG.SRC.JS.LIBS())
             .pipe(partials.errorPipe())
-            .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
-            .pipe(plugins.concat("libs.js"))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)))
+            .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
+            .pipe(plugins.concat(CONFIG.GULP.PLUGINS_LIBS))
+            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
 
         gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
             .pipe(partials.errorPipe())
-            .pipe(plugins.gulpIf(env === "prod", plugins.uglify()))
+            .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
             .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
-        ;
-    };
+    }
 
     // TODO generalize
     var getEnvironmentPath = function (env) {
-        var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
+        var ENV_PATH_ROOT = (env === CONFIG.GULP.DEV) ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
         return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
     };
 
     var copyResources = function (ENV_PATH_ROOT) {
-        gulp.src("src/mocks/**/*")
-            .pipe(gulp.dest(ENV_PATH_ROOT + "mocks/"));
+        gulp.src(CONFIG.GULP.PATH.MOCKS)
+            .pipe(gulp.dest(ENV_PATH_ROOT + CONFIG.GULP.PATH.MOCKS_DEST));
 
-        gulp.src("src/img/**/*")
-            .pipe(gulp.dest(ENV_PATH_ROOT + "img/"));
+        gulp.src(CONFIG.GULP.PATH.IMG)
+            .pipe(gulp.dest(ENV_PATH_ROOT + CONFIG.GULP.PATH.IMG_DEST));
     };
 
     // TODO not used, yet
     // for dev: use the intellij watcher.xml to import
     // See explanations: https://github.com/palantir/tslint
     //            ,"check-lowercase"
-    gulp.task("tslint", function () {
-        plugins.tslint = plugins.tslint || require('gulp-tslint');
+    gulp.task(CONFIG.GULP.TSLINT, function () {
+        plugins.tslint = plugins.tslint || require(CONFIG.GULP.GULP_TSLINT);
         // TODO cache and move
         var tslintConfig = require(CONFIG.DEV.TSLINT_CONFIG());
 
@@ -136,7 +135,7 @@ var initGulp = function (gulp, CONFIG) {
         gulp.src(CONFIG.SRC.TS.TS_FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.tslint({configuration: tslintConfig}))
-            .pipe(plugins.tslint.report("verbose"));
+            .pipe(plugins.tslint.report(CONFIG.GULP.VERBOSE));
     });
 
     var performTemplating = function (targetFolder, cb) {
@@ -147,13 +146,13 @@ var initGulp = function (gulp, CONFIG) {
         });
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
-            plugins.concat = require("gulp-concat");
+            plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
 
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
                 .pipe(plugins.ngHtml2js({
-                    moduleName: camelCaseModuleName + "Templatecache",
+                    moduleName: camelCaseModuleName +CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
-                    rename: function (templateUrl, templateFile) {
+                    rename: function (templateUrl) {
                         return "/" + CONFIG.DIST.ROOT_PREFIX_PATH() + templateUrl;
                     }
                 }))
@@ -167,34 +166,35 @@ var initGulp = function (gulp, CONFIG) {
         angularTemplating(targetFolder);
 
         cb();
-    }
+    };
 
     // TODO refactor to split "lodash build templating" and angular templating
 
-    gulp.task("dev:templates", function (cb) {
+    gulp.task(CONFIG.GULP.DEV_TEMPLATES, function (cb) {
         var targetFolder = CONFIG.DIST.DEV_FOLDER();
         performTemplating(targetFolder, cb);
     });
 
     // TODO index should not be delivered to prod
-    gulp.task("prod:templates", function (cb) {
+    gulp.task(CONFIG.GULP.PROD_TEMPLATES, function (cb) {
         var targetFolder = CONFIG.DIST.DIST_FOLDER();
         performTemplating(targetFolder, cb);
     });
 
 
-    gulp.task("echo", function () {
-        console.log("parent");
+    gulp.task(CONFIG.GULP.TASK.ECHO, function () {
+        console.log(CONFIG.GULP.PARENT);
     });
 
-    gulp.task("webserver", function () {
-        plugins.browserSync = plugins.browserSync || require("browser-sync");
+    gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
+        plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
 
-        var recursive = "**/*.*";
-        // TODO reduce to minimum
         var filesToWatch = [
-            CONFIG.DIST.DEV_FOLDER() + recursive
+            CONFIG.DIST.DEV_FOLDER() + CONFIG.GULP.PATH.RECURSIVE,
+
+
         ];
+
         plugins.browserSync.init(filesToWatch, {
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
@@ -206,9 +206,8 @@ var initGulp = function (gulp, CONFIG) {
 
     // TODO only use one tscompile for dev, tests and prod for compact view
     // TODO refactor to dev:tscompile
-    function handleJavaScript(tsfiles, doUseSourceMaps, ecmaScriptVersion) {
+    function handleJavaScript(tsfiles) {
         console.log(tsfiles);
-        var filters = {};
 
         return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
             .pipe(partials.errorPipe())
@@ -222,36 +221,34 @@ var initGulp = function (gulp, CONFIG) {
                     //target: ecmaScriptVersion
 
                 })
+            //    , filters, "longReporter"
         )
             ;
     }
 
-    gulp.task("dev:styles", function () {
-        gulp_utils.sass = require("./tasks/styles/sass");
+    gulp.task(CONFIG.GULP.DEV_STYLES, function () {
+        gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
-        var envPath = getEnvironmentPath("dev");
+        var envPath = getEnvironmentPath(CONFIG.GULP.DEV);
         gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
     });
 
-    gulp.task("prod:styles", function () {
-        gulp_utils.sass = require("./tasks/styles/sass");
+    gulp.task(CONFIG.GULP.PROD_STYLES, function () {
+        gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
-        var envPath = getEnvironmentPath("prod");
+        var envPath = getEnvironmentPath(CONFIG.GULP.PROD);
         gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
     });
 
-    gulp.task("tscompile", function () {
+    gulp.task(CONFIG.GULP.TSCOMPILE, function () {
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
-        var ecmaScriptVersion = "ES5";
-        var doUseSourceMaps = true;
-
         var targetRootFolder = CONFIG.DIST.DEV_FOLDER();
-        handleJavaScript(tsSourceFiles, doUseSourceMaps, ecmaScriptVersion)
+        handleJavaScript(tsSourceFiles)
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
     });
 
     // TODO use handleJavaScript ()
-    gulp.task("tscompiletests", function () {
+    gulp.task(CONFIG.GULP.TS_COMPILE_TESTS, function () {
         console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         return gulp.src(sourceFiles)
@@ -259,25 +256,23 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.typescript(
                 {
                     allowBool: true,
-                    out: "tests.js",
+                    out: CONFIG.GULP.TEST_JS,
                     // tmpDir : "./ts_tmp",
                     // sourcemap: true,
                     // sourceRoot: "/",
-                    target: "ES5"
+                    target: CONFIG.GULP.ES3
                 }))
             .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
     });
 
-    gulp.task("prod:tscompile", function () {
-        plugins.ngAnnotate = plugins.ngAnnotate || require("gulp-ng-annotate");
-        plugins.uglify = require("gulp-uglify");
+    gulp.task(CONFIG.GULP.PROD_TSCOMPILE, function () {
+        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
+        plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
 
-        var ecmaScriptVersion = "ES3";
-        var doUseSourceMaps = false;
         var tsfiles = CONFIG.SRC.TS.TS_FILES();
 
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
-        handleJavaScript(tsfiles, doUseSourceMaps, ecmaScriptVersion)
+        handleJavaScript(tsfiles)
             .pipe(plugins.ngAnnotate())
             .pipe(plugins.uglify())
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
@@ -286,9 +281,9 @@ var initGulp = function (gulp, CONFIG) {
     // TODO refactor CI only tasks to separate file
 
     // Run unit test once and exit
-    gulp.task("test", function (done) {
+    gulp.task(CONFIG.GULP.TASK.TEST, function (done) {
         // TODO strategy to run tests separated
-        npms.karma = npms.karma || require("karma").server; // TODO move server call to later
+        npms.karma = npms.karma || require(CONFIG.GULP.KARMA).server; // TODO move server call to later
         npms.karma.start({
             // "/node_modules/web3-common-build-setup/"+
             configFile: CONFIG.DEV.KARMA_CONFIG(),
@@ -302,20 +297,6 @@ var initGulp = function (gulp, CONFIG) {
         require("./tasks/maintain/documentation").generateDocumentation();
     });
 
-    var showHelpMessageToConsole = function () {
-        process.stdout.write("\nUse\n");
-        process.stdout.write("gulp dev\n");
-        process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
-        process.stdout.write("------------------\n");
-        process.stdout.write("Use\n");
-        process.stdout.write("gulp prod\n");
-        process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
-        process.stdout.write("------------------\n");
-        process.stdout.write("Use\n");
-        process.stdout.write("gulp help\n");
-        process.stdout.write("for howto - TODO\n");
-    };
-
     return gulp;
 };
 
@@ -325,5 +306,4 @@ module.exports.buildConfig = require(pathToBuildConfig);
 
 
 var gulpUtils = require("./tasks/common/gulp_catch_error");
-
 module.exports.partials = {"gulp_utils": gulpUtils};

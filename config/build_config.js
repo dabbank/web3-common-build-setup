@@ -205,7 +205,90 @@ var CONFIG = {
             NG_MODULE_DEPS: function () {
                 return [];
             }
-        }
+        },
+        GULP:{
+            TYPESCRIPT: "gulp-typescript",
+            HTML2JS:"gulp-ng-html2js",
+
+            TASK:{
+                DEFAULT:"default",
+                CLEAN :"clean",
+                WATCH:"watch",
+                TEST:"test",
+                ECHO:"echo"
+            },
+
+            DEL:"del",
+            PROD_ONCE:"prod:once",
+            PROD:"prod",
+            PROD_FROM_COMMON:"prodFromCommon",
+            PROD_TSCOMPILE:"prod:tscompile",
+            PROD_COPY_STATIC_FILES:"prod:copyStaticFiles",
+            PROD_TEMPLATES:"prod:templates",
+            PROD_STYLES:"prod:styles",
+
+            DEV:"dev",
+            DEV_FROM_COMMON:"devFromCommon",
+            DEV_ONCE:"dev:once",
+            DEV_COPY_STATIC_FILES:"dev:copyStaticFiles",
+            DEV_WEBSERVER:"webserver",
+            DEV_TEMPLATES:"dev:templates",
+            DEV_STYLES:"dev:styles",
+            TS_COMPILE_TESTS:"tscompiletests",
+            TSCOMPILE:"tscompile",
+            TSLINT:"tslint",
+
+            PATH:{
+                SASS:"./tasks/styles/sass",
+                GWATCH_MOCKS:"./src/mocks/**",
+                GWATCH_IMG:"./src/img/**",
+                MOCKS:"./src/mocks/**/*",
+                IMG:"./src/img/**/*",
+                MOCKS_DEST:"mocks/",
+                IMG_DEST:"img/",
+                RECURSIVE:"**/*.*",
+                CATCH_ERROR_JS:"./tasks/common/gulp_catch_error"
+            },
+
+            TEMPLATECACHE:"Templatecache",
+
+            GULP_CONCAT:"gulp-concat",
+            GULP_UGLIFY:"gulp-uglify",
+            GULPIF:"gulp-if",
+            GULP_WATCH:"gulp-watch",
+            GULP_TSLINT:"gulp-tslint",
+            GULP_NG_ANNOTATE:"gulp-ng-annotate",
+
+            PLUGINS_RUNSEQUENCE:"run-sequence",
+            PLUGINS_LIBS:"libs.js",
+            VERBOSE:"verbose",
+            PARENT:"parent",
+            BROWSER_SYNC:"browser-sync",
+            KARMA:"karma",
+            ES5:"ES5",
+            TEST_JS:"tests.js",
+            ES3:"ES3",
+
+            SHOW_HELP_MESSAGE_TO_CONSOLE: function () {
+                process.stdout.write("\nUse\n");
+                process.stdout.write("gulp dev\n");
+                process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
+                process.stdout.write("------------------\n");
+                process.stdout.write("Use\n");
+                process.stdout.write("gulp prod\n");
+                process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
+                process.stdout.write("------------------\n");
+                process.stdout.write("Use\n");
+                process.stdout.write("gulp help\n");
+                process.stdout.write("for howto - TODO\n");
+            }
+
+        },
+        GET_ENVIRONMENT_PATH : function(env){
+            var ENV_PATH_ROOT = (env === CONFIG.GULP.DEV) ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
+            return ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
+        },
+
     }
     ;
 
