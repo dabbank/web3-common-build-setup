@@ -1,4 +1,3 @@
-/* START SASS */
 var gulp = require("gulp");
 
 var pathToBuildConfig = "../../config/build_config.js";

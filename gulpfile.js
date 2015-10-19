@@ -193,11 +193,8 @@ var initGulp = function (gulp, CONFIG) {
         var recursive = "**/*.*";
         // TODO reduce to minimum
         var filesToWatch = [
-            CONFIG.DIST.DEV_FOLDER() + recursive,
-
-
+            CONFIG.DIST.DEV_FOLDER() + recursive
         ];
-
         plugins.browserSync.init(filesToWatch, {
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
@@ -213,7 +210,6 @@ var initGulp = function (gulp, CONFIG) {
         console.log(tsfiles);
         var filters = {};
 
-
         return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
             .pipe(partials.errorPipe())
             .pipe(plugins.typescript(
@@ -226,7 +222,6 @@ var initGulp = function (gulp, CONFIG) {
                     //target: ecmaScriptVersion
 
                 })
-            //    , filters, "longReporter"
         )
             ;
     }
@@ -303,8 +298,9 @@ var initGulp = function (gulp, CONFIG) {
         }, done);
     });
 
-    // TODO use tsdocs
-
+    gulp.task("ci:documentation", function () {
+        require("./tasks/maintain/documentation").generateDocumentation();
+    });
 
     var showHelpMessageToConsole = function () {
         process.stdout.write("\nUse\n");
@@ -329,4 +325,5 @@ module.exports.buildConfig = require(pathToBuildConfig);
 
 
 var gulpUtils = require("./tasks/common/gulp_catch_error");
+
 module.exports.partials = {"gulp_utils": gulpUtils};
