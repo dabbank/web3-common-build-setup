@@ -8,19 +8,10 @@
 
 var _ = require("lodash");
 var path = require('path');
-var module_dependency_utils = require('./../tasks/common/module_dependency_utils');
-
-
-var bowerFolder = 'bower_components/';
-
-var bowerLibFilesToConcat = [
-];
-var bowerLibFilesToConcat_DEV = toFullPath(bowerLibFilesToConcat, bowerFolder);
-var bowerSingleLibFilesNoConcat = [
-];
-var bowerSingleLibFilesNoConcat_DEV = toFullPath(bowerSingleLibFilesNoConcat, bowerFolder);
+var UTIL = require('./util.js');
 
 var CONFIG = {
+
         DEV_FOLDER: {
             CSS: _.constant("./css/"),
             SASS: _.constant("./sass/"),
@@ -30,58 +21,53 @@ var CONFIG = {
             TMP: _.constant("./tmp/"),
             THIRDPARTY_TS_REFERENCE_FILE: _.constant("./reference.d.ts"),// to be overridden
             DEV_OR_DIST_ROOT : function(env){
-                var ENV_PATH_ROOT = (env === "dev") ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
+                var ENV_PATH_ROOT = (env === CONFIG.GULP.DEV) ? CONFIG.DIST.DEV_FOLDER() : CONFIG.DIST.DIST_FOLDER();
                 ENV_PATH_ROOT = ENV_PATH_ROOT + CONFIG.DIST.ROOT_PREFIX_PATH();
                 return ENV_PATH_ROOT;
             }
         },
         FILE_TYPE: {
-        	SCSS: _.constant("**/*.scss")       	
+        	SCSS: _.constant("**/*.scss")
         },
         FILE_TYPE_MACHER : {
             SVG : _.constant("**/*.svg")
         },
         DYNAMIC_META: {
             ROOT_IDENTIFIER: _.constant("web3/"),
-            MODULE_NAME: _.constant(module_dependency_utils.getCurrentModuleName())
+            MODULE_NAME: _.constant(UTIL.MODULE_DEPENDENCY.getCurrentModuleName())
         },
         SRC: {
             INIT_APP_TEMPLATE: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "app/initapp.tpl";
+                return UTIL.SRC() + "app/initapp.tpl";
             },
             
             SASS_FILES: function () {
-                return CONFIG.DEV_FOLDER.SRC() + CONFIG.FILE_TYPE.SCSS();
+                return UTIL.SRC() + CONFIG.FILE_TYPE.SCSS();
             },
             JS: {
-                LIBS: _.constant(bowerLibFilesToConcat_DEV),
-                SINGLE_LIBS: _.constant(bowerSingleLibFilesNoConcat_DEV),
+                FILE_PATH:"**/*.js",
+                LIBS: _.constant(UTIL.BOWER_LIB_FILES_TO_CONCAT_DEV()),
+                SINGLE_LIBS: _.constant(UTIL.BOWER_SINGLE_LIB_FILES_NO_CONCAT_DEV()),
                 MOCK_FILES: function () {
-                    return CONFIG.DEV_FOLDER.MOCK() + "**/*.js";
+                    return CONFIG.DEV_FOLDER.MOCK() + CONFIG.SRC.JS.FILE_PATH;
                 },
                 FILES: function () {
-                    return CONFIG.DEV_FOLDER.SRC() + "**/*.js";
+                    return UTIL.SRC() + CONFIG.SRC.JS.FILE_PATH;
                 }
             },
             TS: {
                 // Dynamically extended by devDependency components
                 TS_FILES: function () {
-                    return [
-                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*.ts",
-                        "!" + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
-                    ];
+                    return UTIL.TS_FILES();
                 },
                 // No dynamic dependencies needed
                 TS_UNIT_TEST_FILES: function () {
-                    return [
-                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*Test.d.ts",
-                        CONFIG.DEV_FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
-                    ];
+                    return UTIL.TS_UNIT_TEST_FILES();
                 },
                 // TODO deprecated
                 TS_DEFINITIONS: function () {
                     return [
-                        CONFIG.DEV_FOLDER.SRC() + "**/*.d.ts",
+                        UTIL.SRC() + "**/*.d.ts",
                         CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()
                     ];
                 },
@@ -89,26 +75,26 @@ var CONFIG = {
                 GLOBAL_TS_UNIT_TEST_FILES: _.constant("ts_tpl/**/*Test.ts") // must be global in TS_FILES
             },
             ANGULAR_HTMLS: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "/ts_tpl/**/*.tpl.html";
+                return UTIL.ANGULAR_HTMLS();
             },
             ALL_HTML_TEMPLATES: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "**/*.html";
+                return UTIL.HTML_TEMPLATES();
             },
             THIRDPARTY: {
                 FONTS: function () {
                     return CONFIG.SRC.THIRDPARTY.FONTS_FOLDER() + "fonts/**/*";
                 },
                 // TODO deprecated, refactor
-                FONTS_FOLDER: _.constant(bowerFolder.concat("bootstrap-sass-official/assets/")),
+                FONTS_FOLDER: _.constant(UTIL.BOWER_FOLDER.concat("bootstrap-sass-official/assets/")),
                 CSS: function () {
                     return ['']; // override in project's build config, if you need 3rd party css
                 }
             },
             ASSETS: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "assets/**/*.js";
+                return UTIL.SRC() + "assets/"+CONFIG.SRC.JS.FILE_PATH+"";
             },
             SPRITES_IMG_BASE_FOLDER: function () {
-                return CONFIG.DEV_FOLDER.SRC() + CONFIG.DEV_FOLDER.SASS() + "sprites/svg/";
+                return UTIL.SRC() + CONFIG.DEV_FOLDER.SASS() + "sprites/svg/";
             },
             //TODO duplicated
             SASS_TARGET_FOLDER: function () {
@@ -126,10 +112,6 @@ var CONFIG = {
                 return CONFIG.DIST.DEV_FOLDER() + "**/*";
             },
             JS: {
-                //TODO duplicated
-                DEV_FOLDER: function () {
-                    return CONFIG.DIST.DEV_FOLDER();
-                },
                 FILES: {
                     LIBS: _.constant('libs.js'),
                     MOCKS: _.constant('mocks.js'),
@@ -168,10 +150,11 @@ var CONFIG = {
         },
         PARTIALS: {
             MAIN: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "frameContent.html";
+                return UTIL.SRC() + "frameContent.html";
             }
         },
         DEV: {
+            HTML_MAIN_PAGE:'index.html',
             WEBSERVER_BASE_ROOT_DIRS: function () {
                 return [
                     "./", 					// For Sourcemaps
@@ -179,13 +162,12 @@ var CONFIG = {
                 ];
             },
             WEBSERVER_STARTPATH: function () {
-                return CONFIG.DIST.ROOT_PREFIX_PATH() + "/index.html";
+                return CONFIG.DIST.ROOT_PREFIX_PATH() + "/"+CONFIG.DEV.HTML_MAIN_PAGE+"";
             }
             ,
             HTML_MAIN: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "index.html";
-            }
-            ,
+                return UTIL.SRC() + CONFIG.DEV.HTML_MAIN_PAGE;
+            },
             ABSOLUTE_FOLDER: _.constant(path.resolve()), // used for windows "\\"
             CURRENT_APP: _.constant(path.basename()),
             STANDALONE_FOLDER: function () {
@@ -269,19 +251,7 @@ var CONFIG = {
             TEST_JS:"tests.js",
             ES3:"ES3",
 
-            SHOW_HELP_MESSAGE_TO_CONSOLE: function () {
-                process.stdout.write("\nUse\n");
-                process.stdout.write("gulp dev\n");
-                process.stdout.write("to start interactive development mode. src files will be watched and dev_target build. webserver connects to dev_target\n");
-                process.stdout.write("------------------\n");
-                process.stdout.write("Use\n");
-                process.stdout.write("gulp prod\n");
-                process.stdout.write("to generate production files, and commit to versioning system. src files will be generated to dist_target\n");
-                process.stdout.write("------------------\n");
-                process.stdout.write("Use\n");
-                process.stdout.write("gulp help\n");
-                process.stdout.write("for howto - TODO\n");
-            }
+            SHOW_HELP_MESSAGE_TO_CONSOLE: UTIL.SHOW_HELP_MESSAGE_TO_CONSOLE()
 
         },
         GET_ENVIRONMENT_PATH : function(env){
@@ -307,25 +277,16 @@ _.mixin({
     }
 });
 
-var dynamicComponentDependencies = module_dependency_utils.dabComponentsDependencies();
-
-var matcherForAllTS = "*.ts";
-var dabComponentsDependenciesTSFiles = addDynamicTSDependencies(dynamicComponentDependencies, matcherForAllTS);
-CONFIG.SRC.TS.TS_FILES = _.constant([].concat("./src/ts_tpl/**/*.module.ts").concat(dabComponentsDependenciesTSFiles.concat(CONFIG.SRC.TS.TS_FILES())));
-
+CONFIG.SRC.TS.TS_FILES= UTIL.ALL_TS_FILES();
+CONFIG.SRC.TS.TS_UNIT_TEST_FILES = UTIL.ALL_TS_UNIT_TEST_FILES();
+CONFIG.SRC.ANGULAR_HTMLS = UTIL.ALL_ANGULAR_HTMLS();
+CONFIG.SRC.ALL_HTML_TEMPLATES = UTIL.ALL_HTML_TEMPLATES();
 
 
-var matcherForOnlyDTS = "*.d.ts";
-var dabComponentsDependenciesTSFiles_TESTS = addDynamicTSDependencies(dynamicComponentDependencies, matcherForOnlyDTS);
-CONFIG.SRC.TS.TS_UNIT_TEST_FILES = _.constant(dabComponentsDependenciesTSFiles_TESTS.concat(CONFIG.SRC.TS.TS_UNIT_TEST_FILES()));
-
-
-var dabComponentsDependenciesTEMPLATECACHEFiles = _.map(module_dependency_utils.dabComponentsDependencies(), function (prop) {
-    return bowerFolder + prop + '/' + CONFIG.SRC.ANGULAR_HTMLS();
-});
-
-CONFIG.SRC.ANGULAR_HTMLS = _.constant(dabComponentsDependenciesTEMPLATECACHEFiles.concat(CONFIG.SRC.ANGULAR_HTMLS()));
-CONFIG.SRC.ALL_HTML_TEMPLATES = _.constant(dabComponentsDependenciesTEMPLATECACHEFiles.concat(CONFIG.SRC.ALL_HTML_TEMPLATES()));
+// TODO move to global gulpfile
+//console.log(UTIL.LOOK_DEEP(CONFIG));
+//var result = JSON.stringify(lookdeep(CONFIG), null, 2);
+//console.log(result.replace(/,/g, ",\n"));
 
 // TODO move to the end
 var configIsValid = _(CONFIG)
@@ -336,48 +297,5 @@ var configIsValid = _(CONFIG)
 //if (!configIsValid) {
 //    throw new Error('CONFIG attributes need to be functions. Use _.constant("value") instead');
 //}
-
-// eighter .d.ts or .ts which includes .d.ts
-function addDynamicTSDependencies(dependencyPaths, tsFilePostfixMatcher) {
-    var dabComponentsDependenciesTSFiles = _.map(dependencyPaths, function (prop) {
-        // TODO distinguish between devDependency and dependency
-        // performance optimization would be to always use .d.ts and take target of
-        // dependency component for dependency ( always not for devDependency)
-
-        return bowerFolder + prop + '/' + "src/**/" + tsFilePostfixMatcher;
-    });
-    return dabComponentsDependenciesTSFiles;
-}
-
-
-function toFullPath(collectionToPrefix, prefix) {
-    return collectionToPrefix.map(function (bowerFile) {
-        return prefix + bowerFile;
-    });
-}
-
-// TODO extract to another file
-function lookdeep(obj) {
-    var A = [], tem;
-    for (var p in obj) {
-        if (obj.hasOwnProperty(p)) {
-            tem = obj[p];
-            if (tem && typeof tem == 'object') {
-                var value = arguments.callee(tem);
-                A[A.length] = p + ':{ ' + value.join(', ') + '}';
-            }
-            else {
-                // Execute function constant
-                A[A.length] = [p + ':' + tem().toString()];
-            }
-        }
-    }
-    return A;
-}
-
-// TODO move to global gulpfile
-//console.log(lookdeep(CONFIG));
-//var result = JSON.stringify(lookdeep(CONFIG), null, 2);
-//console.log(result.replace(/,/g, ",\n"));
 
 module.exports = CONFIG;
