@@ -42,11 +42,11 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
-    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE,CONFIG.GULP.PROD_COPY_STATIC_FILES,CONFIG.GULP.PROD_TEMPLATES]);
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES]);
 
     gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
-    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER,CONFIG.GULP.TASK.WATCH]);
-    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT,CONFIG.GULP.TSCOMPILE,CONFIG.GULP.TS_COMPILE_TESTS, CONFIG.GULP.DEV_TEMPLATES,CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
+    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TS_COMPILE_TESTS, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
 
     gulp.task(CONFIG.GULP.TASK.WATCH, function (cb) {
         plugins.runSequence = require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
@@ -69,7 +69,7 @@ var initGulp = function (gulp, CONFIG) {
 
 
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
-            plugins.runSequence([CONFIG.GULP.TSCOMPILE,CONFIG.GULP.TSLINT]);
+            plugins.runSequence([CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TSLINT]);
         }, cb);
         console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
         plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
@@ -140,17 +140,19 @@ var initGulp = function (gulp, CONFIG) {
 
     var performTemplating = function (targetFolder, cb) {
         // Angular templating
-
+        //TODO move to build_config
         var camelCaseModuleName = CONFIG.DYNAMIC_META.MODULE_NAME().replace(/-([a-z])/g, function (g) {
             return g[1].toUpperCase();
         });
+
+        //TODO move all angular related stuff to tasks/angular
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
             plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
 
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
                 .pipe(plugins.ngHtml2js({
-                    moduleName: camelCaseModuleName +CONFIG.GULP.TEMPLATECACHE,
+                    moduleName: camelCaseModuleName + CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
                     rename: function (templateUrl) {
                         return "/" + CONFIG.DIST.ROOT_PREFIX_PATH() + templateUrl;
@@ -164,6 +166,9 @@ var initGulp = function (gulp, CONFIG) {
         }
 
         angularTemplating(targetFolder);
+
+
+        require("./tasks/buildtemplating/indexTemplating").performTemplatingAtBuildTime(targetFolder);
 
         cb();
     };
@@ -189,10 +194,8 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
 
-         var filesToWatch = [
+        var filesToWatch = [
             CONFIG.DIST.DEV_FOLDER() + CONFIG.GULP.PATH.RECURSIVE,
-
-
         ];
 
         plugins.browserSync.init(filesToWatch, {
@@ -293,7 +296,16 @@ var initGulp = function (gulp, CONFIG) {
         }, done);
     });
 
-    // TODO use tsdocs
+    /**
+     * Continuous Integration tasks
+     */
+    gulp.task("ci:documentation", function () {
+        require("./tasks/maintain/documentation").generateDocumentation();
+    });
+
+    gulp.task("ci:dependencies", function () {
+        require("./tasks/maintain/dependencies").createAngularDependencyGraph(gulp);
+    });
 
     return gulp;
 };

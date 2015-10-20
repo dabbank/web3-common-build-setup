@@ -1,7 +1,10 @@
 // TODO not needed for the moment
-
+var gulp = require("gulp");
 var plugins = {};
 var npms = {};
+var partials = {
+    errorPipe: require("../common/gulp_catch_error").errorPipe
+};
 var exportObject = {};
 var pathToBuildConfig = "../../config/build_config.js";
 var CONFIG = CONFIG || require(pathToBuildConfig);
@@ -10,13 +13,17 @@ var CONFIG = CONFIG || require(pathToBuildConfig);
 exportObject.performTemplatingAtBuildTime = function (targetFolder) {
     plugins.template = require("gulp-template");
     npms.fs = npms.fs || require("fs");
-
-    var frameContentFileContent = "";
-    try {
-        frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
-    } catch (err) {
-        console.log("Info: " + CONFIG.PARTIALS.MAIN() + " not found to use templating at buildtime" + err);
+    function performPlacingPartialIntoIndexHTML() {
+        var frameContentFileContent = "";
+        try {
+            frameContentFileContent = npms.fs.readFileSync(CONFIG.PARTIALS.MAIN());
+        } catch (err) {
+            console.log("Info: " + CONFIG.PARTIALS.MAIN() + " not found to use templating at buildtime" + err);
+        }
+        return frameContentFileContent;
     }
+
+    var frameContentFileContent = "";//TODO Not needed for now performPlacingPartialIntoIndexHTML();
 
     var templateVariables = {
         CONFIG: {
@@ -43,6 +50,5 @@ exportObject.performTemplatingAtBuildTime = function (targetFolder) {
         .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 };
 
-performTemplatingAtBuildTime(targetFolder);
 
 module.exports = exportObject;
