@@ -57,6 +57,7 @@
     "gulp-svg-sprite": "1.1.2",
     "gulp-sass": "2.0.4",
     "vinyl": "0.4.6",
-    "gulp-typedoc": "1.2.1"
+    "gulp-typedoc": "1.2.1",
+    "angular-architecture-graph" : "0.2.3"
   }
 }
