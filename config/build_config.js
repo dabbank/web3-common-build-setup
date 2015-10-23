@@ -71,7 +71,7 @@ var CONFIG = {
                         CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()
                     ];
                 },
-                // TODO move to general files
+                // TODO dplicated in UTIL move to general files
                 GLOBAL_TS_UNIT_TEST_FILES: function () {
                     return CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*test.ts";
                 }

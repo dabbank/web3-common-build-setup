@@ -7,7 +7,7 @@ var _ = require("lodash");
 var UTIL = {
 
     SRC: _.constant("./src/"),
-    GLOBAL_TS_UNIT_TEST_FILES: _.constant("ts_tpl/**/*Test.ts"),
+    GLOBAL_TS_UNIT_TEST_FILES: _.constant("ts_tpl/**/*.test.ts"),
     BOWER_FOLDER : "bower_components/",
     MODULE_DEPENDENCY: require('./../tasks/common/module_dependency_utils'),
 
@@ -33,7 +33,7 @@ var UTIL = {
     TS_FILES: function () {
         return [
             UTIL.SRC() + "ts_tpl/**/*.ts",
-            "!" + UTIL.GLOBAL_TS_UNIT_TEST_FILES()
+            "!" + UTIL.SRC() + UTIL.GLOBAL_TS_UNIT_TEST_FILES()
         ];
     },
 
