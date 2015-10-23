@@ -74,8 +74,8 @@ var CONFIG = {
                 // No dynamic dependencies needed
                 TS_UNIT_TEST_FILES: function () {
                     return [
-                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*Test.d.ts",
-                        CONFIG.DEV_FOLDER.SRC() + CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
+                        CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*.test.d.ts",
+                        CONFIG.SRC.TS.GLOBAL_TS_UNIT_TEST_FILES()
                     ];
                 },
                 // TODO deprecated
@@ -86,10 +86,12 @@ var CONFIG = {
                     ];
                 },
                 // TODO move to general files
-                GLOBAL_TS_UNIT_TEST_FILES: _.constant("ts_tpl/**/*Test.ts") // must be global in TS_FILES
+                GLOBAL_TS_UNIT_TEST_FILES: function () {
+                    return CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*test.ts";
+                }
             },
             ANGULAR_HTMLS: function () {
-                return CONFIG.DEV_FOLDER.SRC() + "/ts_tpl/**/*.tpl.html";
+                return CONFIG.DEV_FOLDER.SRC() + "ts_tpl/**/*.tpl.html";
             },
             ALL_HTML_TEMPLATES: function () {
                 return CONFIG.DEV_FOLDER.SRC() + "**/*.html";
@@ -98,8 +100,6 @@ var CONFIG = {
                 FONTS: function () {
                     return CONFIG.SRC.THIRDPARTY.FONTS_FOLDER() + "fonts/**/*";
                 },
-                // TODO deprecated, refactor
-                FONTS_FOLDER: _.constant(bowerFolder.concat("bootstrap-sass-official/assets/")),
                 CSS: function () {
                     return ['']; // override in project's build config, if you need 3rd party css
                 }
