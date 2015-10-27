@@ -18,6 +18,8 @@ console.log("ABSOLUTE"+CONFIG.DEV.ABSOLUTE_FOLDER());
     var tsFilesPreprocessorMatcher = folderToSRC+ '/src/**/*Test.ts';
 
     karmaConfig.set({
+
+        //TODO consider to use it see config on bottom of file
         preprocessors : {
 //            tsFilesPreprocessorMatcher: ['typescript']
             //    '**/*.js': ['sourcemap']
@@ -29,10 +31,25 @@ console.log("ABSOLUTE"+CONFIG.DEV.ABSOLUTE_FOLDER());
 
         // TODO use CONFIG
         files: [
-            {pattern: "tmp/tests/tests.js", watched: false, included: false, served: true},
-            'dev_target/web3/danube-common-portal/libs.js',
-              'dev_target/web3/danube-common-portal/templates.js',
-  'dev_target/web3/danube-common-portal/app.js'
+            /*
+             {
+             pattern: "tmp/tests/tests.js"
+             ,
+             watched: false,
+             included: false,
+             served: true
+             },
+             */
+            //TODO too much convention ?
+            //TODO move to CONFIG
+            //for core only
+            'dev_target/web3/*/libs.js',
+            "bower_components/angular-mocks/angular-mocks.js",
+            // for submodules of core
+            'bower_components/danube-core-portal/bower_components/angular-mocks/angular-mocks.js',
+            'dev_target/web3/*/templates.js',
+            'dev_target/web3/*/app.js',
+            "tmp/tests/tests.js"
 
 
             //folderToSRC+ '/'+'gulp-tsc-tmp-114915-7264-52gdcc/app.js.map'
@@ -102,6 +119,15 @@ console.log("ABSOLUTE"+CONFIG.DEV.ABSOLUTE_FOLDER());
           "karma-chrome-launcher",
           "karma-phantomjs-launcher"
       ],
+        /*
+         phantomjsLauncher: {
+         // configure PhantomJS executable for each platform
+         cmd: {
+         linux: 'target/phantomjs/linux64/phantomjs',
+         win32: 'C:/dev/programs/phantomjs/bin/phantomjs.exe'
+         }
+         },
+         */
 
         // TODO not executed atm
         typescriptPreprocessor: {
