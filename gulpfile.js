@@ -282,18 +282,23 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     // TODO refactor CI only tasks to separate file
-
     // Run unit test once and exit
     gulp.task(CONFIG.GULP.TASK.TEST, function (done) {
         // TODO strategy to run tests separated
-        npms.karma = npms.karma || require(CONFIG.GULP.KARMA).server; // TODO move server call to later
-        npms.karma.start({
+        // v. >0.13 requires node-gyp which has problems on installation
+        npms.karma = npms.karma || require(CONFIG.GULP.KARMA).server;// on version 13 use Server; // TODO move server call to later
+        new npms.karma.start({
             // "/node_modules/web3-common-build-setup/"+
             configFile: CONFIG.DEV.KARMA_CONFIG(),
             // Override specific config from file
+            autoWatch: false,
             singleRun: true
             //browsers: ["PhantomJS"]
-        }, done);
+        }, function (exitCode) {
+            console.log('Karma has exited with ' + exitCode);
+            done();
+            process.exit(exitCode);
+        });
     });
 
     /**
@@ -306,6 +311,12 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task("ci:dependencies", function () {
         require("./tasks/maintain/dependencies").createAngularDependencyGraph(gulp);
     });
+
+
+    gulp.task("ci:performance", function () {
+        require("./tasks/maintain/performance").performPerformanceAnalysis();
+    });
+
 
     return gulp;
 };

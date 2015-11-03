@@ -1,6 +1,6 @@
 {
   "name": "web3-common-build-setup",
-  "version": "0.5.0",
+  "version": "1.2.0",
   "description": "common build setup files, karma version 0.12> does not work for some proxies",
   "author": "David Amend <david.amend@it-amend.de>",
   "contributors": [
@@ -24,7 +24,6 @@
     "canonical-path": "0.0.2",
     "del": "1.2.0",
     "gulp": "3.9.0",
-    "phantomjs": "1.9.8",
     "gulp-concat": "2.6.0",
     "gulp-css-base64": "1.3.2",
     "gulp-if": "1.2.5",
@@ -41,10 +40,11 @@
     "gulp-uglify": "1.2.0",
     "gulp-watch": "4.3.4",
     "inquirer": "0.9.0",
-    "karma": "0.12",
+    "jasmine-core": "2.3.0",
+    "karma": "0.12.37",
     "karma-chrome-launcher": "0.2.0",
     "karma-jasmine": "0.3.6",
-    "karma-phantomjs-launcher": "0.2.1",
+    "karma-phantomjs-launcher-nonet": "0.1.2",
     "karma-sourcemap-loader": "0.3.5",
     "lodash": "3.10.1",
     "path": "0.11.14",
@@ -56,8 +56,9 @@
     "gulp-merge": "0.1.1",
     "gulp-svg-sprite": "1.1.2",
     "gulp-sass": "2.0.4",
-    "vinyl": "0.4.6",
-    "gulp-typedoc": "1.2.1",
-    "angular-architecture-graph" : "0.2.3"
+    "precss": "1.3.0",
+    "gulp-postcss": "6.0.1",
+    "autoprefixer": "6.0.3",
+    "vinyl": "0.4.6"
   }
 }

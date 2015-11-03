@@ -1,0 +1,26 @@
+{
+  "name": "web3-common-build-setup-ci",
+  "version": "0.5.0",
+  "description": "for ci tasks only",
+  "author": "David Amend <david.amend@it-amend.de>",
+  "contributors": [
+    {
+      "email": "danny.winter@dab.com"
+    }
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/dabbank/web3-common-build-setup"
+  },
+  "bugs": {
+    "url": "https://github.com/dabbank/web3-common-build-setup/issues"
+  },
+  "main": "gulpfile.js",
+  "dependencies": {
+    "gulp": "3.9.0",
+    "phantomjs": "1.9.8",
+    "angular-architecture-graph": "0.2.3",
+    "phantomas": "1.12.0"
+  }
+}

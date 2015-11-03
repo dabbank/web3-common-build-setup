@@ -9,19 +9,38 @@ var plugins = plugins || {};
 var spritesTask = "./sprites";
 
 var compileSass = function (environment) {
+    /*
+     TODO use instead
+     */
+    plugins.postcss = plugins.postcss || require('gulp-postcss');
+    // plugins.precss = plugins.precss || require('precss');
+    plugins.autoprefixer = plugins.autoprefixer || require('autoprefixer');
+    //var mqpacker = require('css-mqpacker');
+    //var csswring = require('csswring');
     plugins.sass = plugins.sass || require("gulp-sass");
     //gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
     //    .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + "css"));
-    console.log("Compiling sass files..");
+
+    var processors = [
+        plugins.autoprefixer(
+            {
+                browsers: ['last 1 version']
+            }
+        ),
+        // plugins.precss()
+        //  ,mqpacker,
+        //  csswring
+    ];
+
     return gulp.src(CONFIG.SRC.SASS_FILES())
         .pipe(plugins.sass({
             precision: 8,
             errLogToConsole: true
-        }));
+        }))
+        .pipe(plugins.postcss(processors));
 };
 
-
-var performCSS = function(){
+var performCSS = function () {
     plugins.gulpMerge = plugins.gulpMerge || require('gulp-merge');
     plugins.gulpFilter = plugins.gulpFilter || require('gulp-filter');
     plugins.concat = plugins.concat || require('gulp-concat');
@@ -47,5 +66,5 @@ var getEnvironmentPath = function (env) {
 /* END SASS */
 
 module.exports = {
-    performCSS : performCSS
+    performCSS: performCSS
 }

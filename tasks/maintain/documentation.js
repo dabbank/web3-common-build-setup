@@ -4,6 +4,8 @@ var partials = {};
 partials.errorPipe = gulp_utils.errorPipe;
 var plugins = plugins || {};
 
+// "gulp-typedoc": "1.2.1",
+
 var generateDocumentation = function () {
     plugins.typedoc = require("gulp-typedoc");
     var ALL_TS_SRC_FILES = ["danube-core/portal/tsd/**/*.d.ts", "**/src/ts_tpl/**/*.ts", "!**/bower_components/**/src/ts_tpl/**/*.ts"];
