@@ -15,7 +15,7 @@ console.log("ABSOLUTE"+CONFIG.DEV.ABSOLUTE_FOLDER());
     folderToSRC = folderToSRC+'/';
     console.log(folderToSRC);
 
-    var tsFilesPreprocessorMatcher = folderToSRC+ '/src/**/*Test.ts';
+    var tsFilesPreprocessorMatcher = folderToSRC+ '/src/**/*.test.ts';
 
     karmaConfig.set({
 

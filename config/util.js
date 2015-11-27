@@ -39,7 +39,7 @@ var UTIL = {
 
     TS_UNIT_TEST_FILES: function () {
         return [
-            UTIL.SRC() + "ts_tpl/**/*Test.d.ts",
+            UTIL.SRC() + "ts_tpl/**/*test.d.ts",
             UTIL.SRC() + UTIL.GLOBAL_TS_UNIT_TEST_FILES()
         ];
     },
