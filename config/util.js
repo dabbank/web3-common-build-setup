@@ -27,7 +27,7 @@ var UTIL = {
     },
 
     ALL_TS_FILES:function(){
-        return  _.constant([].concat("./src/ts_tpl/**/*.module.ts").concat(UTIL.ADD_DINAMIC_TS_DEPENDENCIES(UTIL.DYNAMIC_COMPONENT_DEPENDENCIES(), UTIL.MATCHER_FOR_ALL_TS).concat(UTIL.TS_FILES())));
+        return _.constant([].concat("./src/ts_tpl/**/*module.ts").concat(UTIL.ADD_DINAMIC_TS_DEPENDENCIES(UTIL.DYNAMIC_COMPONENT_DEPENDENCIES(), UTIL.MATCHER_FOR_ALL_TS).concat(UTIL.TS_FILES())));
     },
 
     TS_FILES: function () {
