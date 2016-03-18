@@ -218,6 +218,7 @@ var initGulp = function (gulp, CONFIG) {
                 {
                     //allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
+                    typescript:require("typescript"),
                     sortOutput: true
                     //sourcemap: doUseSourceMaps,
                     //sourceRoot: doUseSourceMaps ? "/" : null,
