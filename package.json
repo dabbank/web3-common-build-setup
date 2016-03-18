@@ -20,7 +20,7 @@
   "main": "gulpfile.js",
   "dependencies": {
     "bower": "1.4.1",
-    "browser-sync": "2.8.2",
+    "browser-sync": "2.11.1",
     "canonical-path": "0.0.2",
     "del": "1.2.0",
     "gulp": "3.9.0",
