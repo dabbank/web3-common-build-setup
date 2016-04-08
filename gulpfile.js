@@ -42,7 +42,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
-    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES]);
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES,CONFIG.GULP.PROD_STYLES]);
 
     gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
     gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
@@ -278,7 +278,11 @@ var initGulp = function (gulp, CONFIG) {
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
         handleJavaScript(tsfiles)
             .pipe(plugins.ngAnnotate())
-            .pipe(plugins.uglify())
+            .pipe(plugins.uglify(
+                {
+                    mangle: false
+                }
+            ))
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
     });
 
