@@ -163,6 +163,11 @@ var CONFIG = {
             },
             WEBSERVER_STARTPATH: function () {
                 return CONFIG.DIST.ROOT_PREFIX_PATH() + "/"+CONFIG.DEV.HTML_MAIN_PAGE+"";
+            },
+            WEBSERVER_FILES_TO_WATCH : function(){
+                return [
+                    CONFIG.DIST.DEV_FOLDER() + CONFIG.GULP.PATH.RECURSIVE,
+                ]
             }
             ,
             HTML_MAIN: function () {
@@ -219,7 +224,7 @@ var CONFIG = {
             TS_COMPILE_TESTS:"tscompiletests",
             TSCOMPILE:"tscompile",
             TSLINT:"tslint",
-
+// TODO REVIEW: use _.constant instead
             PATH:{
                 SASS:"./tasks/styles/sass",
                 GWATCH_MOCKS:"./src/mocks/**",

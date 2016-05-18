@@ -194,11 +194,7 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
 
-        var filesToWatch = [
-            CONFIG.DIST.DEV_FOLDER() + CONFIG.GULP.PATH.RECURSIVE,
-        ];
-
-        plugins.browserSync.init(filesToWatch, {
+        plugins.browserSync.init(CONFIG.DEV.WEBSERVER_FILES_TO_WATCH(), {
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
             },
