@@ -13,7 +13,6 @@ var compileSass = function (environment) {
      TODO use instead
      */
     plugins.postcss = plugins.postcss || require('gulp-postcss');
-    // plugins.precss = plugins.precss || require('precss');
     plugins.autoprefixer = plugins.autoprefixer || require('autoprefixer');
     //var mqpacker = require('css-mqpacker');
     //var csswring = require('csswring');
@@ -26,10 +25,7 @@ var compileSass = function (environment) {
             {
                 browsers: ['last 1 version']
             }
-        ),
-        // plugins.precss()
-        //  ,mqpacker,
-        //  csswring
+        )
     ];
 
     return gulp.src(CONFIG.SRC.SASS_FILES())

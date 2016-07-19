@@ -193,13 +193,50 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
+		//plugins.HttpsProxyAgent = require('http-proxy-agent');
+		//plugins.proxy = plugins.proxy || require("http-proxy-middleware");
+		
+		//plugins.url = plugins.url || require('url');
+		
+		//var proxyServer = process.env.HTTPS_PROXY ||
+        //          process.env.HTTP_PROXY;
+	
+		/*
+		var jsonPlaceholderProxy = plugins.proxy(
+			"/rest",
+			{
+				target : "https://int-dev.bnpparibas.cz",
+			//	agent: new plugins.HttpsProxyAgent( 
+			//	{host : "proxy.corp.dir", protocol : "http", port : "8080", secureProxy : true}
+				//plugins.url.parse(
+				//"http://proxy.corp.dir:8080"
+				//  )
+			//	),
+				logLevel: 'debug',
+		//		headers : {host:'int-dev.bnpparibas.cz'},
+			//	secure:true,
+			   changeOrigin: true, 
+			  // auth : "",
+			  // toProxy : true,
+			  // xfwd : true
+			}
+		
 
-        plugins.browserSync.init(CONFIG.DEV.WEBSERVER_FILES_TO_WATCH(), {
+		);
+		*/
+		
+		plugins.browserSync = require('browser-sync').create();
+		
+        plugins.browserSync.init({
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
-            },
+				,
+				//  middleware: [jsonPlaceholderProxy],
+			},
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
-            port: 9000
+            port: 9000,
+			https: false,
+			 
         });
     });
 
