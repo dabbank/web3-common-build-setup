@@ -148,9 +148,30 @@ var initGulp = function (gulp, CONFIG) {
         //TODO move all angular related stuff to tasks/angular
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
-            plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
-
+            plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
+			plugins.htmlMin = plugins.htmlMin || require("gulp-htmlmin");
+			plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+			
+			// https://github.com/kangax/html-minifier
+			var hmtlMinConfig = {
+				collapseBooleanAttributes: true,
+				collapseBooleanAttributes: false,
+				collapseWhitespace: true,
+				removeAttributeQuotes: true,
+				removeEmptyAttributes: true,
+				removeRedundantAttributes: true,
+				removeScriptTypeAttributes: true,
+				removeStyleLinkTypeAttributes: true,
+				removeAttributeQuotes: false,
+				removeComments: false,
+				removeEmptyAttributes: false,
+				removeRedundantAttributes: false,
+				removeScriptTypeAttributes: false,
+				removeStyleLinkTypeAttributes: false
+			};
+			
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
+			 .pipe(plugins.htmlMin(hmtlMinConfig))
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
@@ -161,7 +182,8 @@ var initGulp = function (gulp, CONFIG) {
                 .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
                 // TODO distinguish between prod and not
-                .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
+                .pipe(plugins.uglify())
+				.pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 
         }
 
@@ -313,6 +335,7 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.ngAnnotate())
             .pipe(plugins.uglify(
                 {
+// TODO
                     mangle: false
                 }
             ))
