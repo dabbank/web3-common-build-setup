@@ -42,7 +42,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
-    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES,CONFIG.GULP.PROD_STYLES]);
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
 
     gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
     gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
@@ -149,29 +149,29 @@ var initGulp = function (gulp, CONFIG) {
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
             plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
-			plugins.htmlMin = plugins.htmlMin || require("gulp-htmlmin");
-			plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
-			
-			// https://github.com/kangax/html-minifier
-			var hmtlMinConfig = {
-				collapseBooleanAttributes: true,
-				collapseBooleanAttributes: false,
-				collapseWhitespace: true,
-				removeAttributeQuotes: true,
-				removeEmptyAttributes: true,
-				removeRedundantAttributes: true,
-				removeScriptTypeAttributes: true,
-				removeStyleLinkTypeAttributes: true,
-				removeAttributeQuotes: false,
-				removeComments: false,
-				removeEmptyAttributes: false,
-				removeRedundantAttributes: false,
-				removeScriptTypeAttributes: false,
-				removeStyleLinkTypeAttributes: false
-			};
-			
+            plugins.htmlMin = plugins.htmlMin || require("gulp-htmlmin");
+            plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+
+            // https://github.com/kangax/html-minifier
+            var hmtlMinConfig = {
+                collapseBooleanAttributes: true,
+                collapseBooleanAttributes: false,
+                collapseWhitespace: true,
+                removeAttributeQuotes: true,
+                removeEmptyAttributes: true,
+                removeRedundantAttributes: true,
+                removeScriptTypeAttributes: true,
+                removeStyleLinkTypeAttributes: true,
+                removeAttributeQuotes: false,
+                removeComments: false,
+                removeEmptyAttributes: false,
+                removeRedundantAttributes: false,
+                removeScriptTypeAttributes: false,
+                removeStyleLinkTypeAttributes: false
+            };
+
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
-			 .pipe(plugins.htmlMin(hmtlMinConfig))
+                .pipe(plugins.htmlMin(hmtlMinConfig))
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
@@ -183,7 +183,7 @@ var initGulp = function (gulp, CONFIG) {
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
                 // TODO distinguish between prod and not
                 .pipe(plugins.uglify())
-				.pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
+                .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 
         }
 
@@ -215,50 +215,18 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
-		//plugins.HttpsProxyAgent = require('http-proxy-agent');
-		//plugins.proxy = plugins.proxy || require("http-proxy-middleware");
-		
-		//plugins.url = plugins.url || require('url');
-		
-		//var proxyServer = process.env.HTTPS_PROXY ||
-        //          process.env.HTTP_PROXY;
-	
-		/*
-		var jsonPlaceholderProxy = plugins.proxy(
-			"/rest",
-			{
-				target : "https://int-dev.bnpparibas.cz",
-			//	agent: new plugins.HttpsProxyAgent( 
-			//	{host : "proxy.corp.dir", protocol : "http", port : "8080", secureProxy : true}
-				//plugins.url.parse(
-				//"http://proxy.corp.dir:8080"
-				//  )
-			//	),
-				logLevel: 'debug',
-		//		headers : {host:'int-dev.bnpparibas.cz'},
-			//	secure:true,
-			   changeOrigin: true, 
-			  // auth : "",
-			  // toProxy : true,
-			  // xfwd : true
-			}
-		
+        plugins.browserSync = require('browser-sync').create();
 
-		);
-		*/
-		
-		plugins.browserSync = require('browser-sync').create();
-		
         plugins.browserSync.init({
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
-				,
-				//  middleware: [jsonPlaceholderProxy],
-			},
+                ,
+                //  middleware: [jsonPlaceholderProxy],
+            },
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
             port: 9000,
-			https: false,
-			 
+            https: false,
+
         });
     });
 
@@ -267,21 +235,29 @@ var initGulp = function (gulp, CONFIG) {
     function handleJavaScript(tsfiles) {
         console.log(tsfiles);
 
+        console.time("concat");
         return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
             .pipe(partials.errorPipe())
+            .on('finish', function(){
+                console.timeEnd("concat");
+                console.time("typescriptCompiler");
+            })
             .pipe(plugins.typescript(
                 {
                     //allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
-                    typescript:require("typescript"),
-                    sortOutput: true
+                    typescript: require("typescript"),
+                    sortOutput: true,
+                    diagnostics : true,
+                    pretty : true
                     //sourcemap: doUseSourceMaps,
                     //sourceRoot: doUseSourceMaps ? "/" : null,
                     //target: ecmaScriptVersion
-
                 })
-            //    , filters, "longReporter"
-        )
+            )
+            .on('data', function(){
+                console.timeEnd("typescriptCompiler");
+            })
             ;
     }
 
@@ -289,14 +265,14 @@ var initGulp = function (gulp, CONFIG) {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
         var envPath = getEnvironmentPath(CONFIG.GULP.DEV);
-        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+        gulp_utils.sass.performCSS(CONFIG.GULP.DEV).pipe(gulp.dest(envPath));
     });
 
     gulp.task(CONFIG.GULP.PROD_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
         var envPath = getEnvironmentPath(CONFIG.GULP.PROD);
-        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+        gulp_utils.sass.performCSS(CONFIG.GULP.PROD).pipe(gulp.dest(envPath));
     });
 
     gulp.task(CONFIG.GULP.TSCOMPILE, function () {
@@ -325,20 +301,35 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     gulp.task(CONFIG.GULP.PROD_TSCOMPILE, function () {
-        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
         plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
+        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
 
         var tsfiles = CONFIG.SRC.TS.TS_FILES();
 
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
+
         handleJavaScript(tsfiles)
-            .pipe(plugins.ngAnnotate())
+            .on('data', function() {
+                console.time("ngAnnotate");
+            })
+            .pipe(plugins.ngAnnotate({
+                remove: false,
+                add: true,
+                single_quotes: false
+            }))
+            .on('data', function(){
+                console.timeEnd("ngAnnotate");
+                console.time("uglify");
+            })
             .pipe(plugins.uglify(
                 {
 // TODO
                     mangle: false
                 }
             ))
+            .on('data', function() {
+                console.timeEnd("uglify");
+            })
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
     });
 
