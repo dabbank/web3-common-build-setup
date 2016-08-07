@@ -94,6 +94,7 @@ var initGulp = function (gulp, CONFIG) {
     function copyThirdPartyJS(env) {
         plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
         plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
+        plugins.gulpIf = require(CONFIG.GULP.GULPIF);
 
         // , "bower_components/mobile-boilerplate/js/helper.js",
         gulp.src(CONFIG.SRC.JS.LIBS())
@@ -151,6 +152,7 @@ var initGulp = function (gulp, CONFIG) {
             plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
             plugins.htmlMin = plugins.htmlMin || require("gulp-htmlmin");
             plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+            plugins.gulpIf = require(CONFIG.GULP.GULPIF);
 
             // https://github.com/kangax/html-minifier
             var hmtlMinConfig = {
@@ -171,7 +173,7 @@ var initGulp = function (gulp, CONFIG) {
             };
 
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
-                .pipe(plugins.htmlMin(hmtlMinConfig))
+                .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.htmlMin(hmtlMinConfig)))
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
@@ -181,17 +183,13 @@ var initGulp = function (gulp, CONFIG) {
                 }))
                 .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
-                // TODO distinguish between prod and not
-                .pipe(plugins.uglify())
+                .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
                 .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 
         }
 
         angularTemplating(targetFolder);
-
-
         require("./tasks/buildtemplating/indexTemplating").performTemplatingAtBuildTime(targetFolder);
-
         cb();
     };
 
@@ -220,13 +218,10 @@ var initGulp = function (gulp, CONFIG) {
         plugins.browserSync.init({
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
-                ,
-                //  middleware: [jsonPlaceholderProxy],
             },
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
             port: 9000,
-            https: false,
-
+            https: false
         });
     });
 
