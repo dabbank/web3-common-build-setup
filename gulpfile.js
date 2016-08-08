@@ -5,12 +5,6 @@
  * npm install npm-check-updates -g
  */
 
-/**
- * TODO distinguish in file between CI only tasks
- * because of longer initial times by require statements and clean code
- * gulp --gulpfile mygulpfile.js
- */
-
 var pathToBuildConfig = "./config/build_config.js";
 
 var initGulp = function (gulp, CONFIG) {
@@ -18,11 +12,10 @@ var initGulp = function (gulp, CONFIG) {
     CONFIG = CONFIG || require(pathToBuildConfig);
 
     var plugins = {};
-
+// TODO REVIEW: move to where it is used. prevent double require in multiple files due to performance
     plugins.typescript = require(CONFIG.GULP.TYPESCRIPT);
     plugins.gulpIf = require(CONFIG.GULP.GULPIF);
     plugins.ngHtml2js = require(CONFIG.GULP.HTML2JS);
-
 
     var npms = {};
     var gulp_utils = require(CONFIG.GULP.PATH.CATCH_ERROR_JS);
@@ -41,10 +34,10 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
-    gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
+    gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]);
     gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
 
-    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
+    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
     gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
     gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TS_COMPILE_TESTS, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
 
@@ -132,14 +125,20 @@ var initGulp = function (gulp, CONFIG) {
         // TODO cache and move
         var tslintConfig = require(CONFIG.DEV.TSLINT_CONFIG());
 
-
         gulp.src(CONFIG.SRC.TS.TS_FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.tslint({configuration: tslintConfig}))
             .pipe(plugins.tslint.report(CONFIG.GULP.VERBOSE));
+        /*
+            .pipe(plugins.tslint({
+                formatter: CONFIG.GULP.VERBOSE
+            }))
+            .pipe(plugins.tslint.report());
+        ;
+        */
     });
 
-    var performTemplating = function (targetFolder, cb) {
+    var performTemplating = function (targetFolder, cb, env) {
         // Angular templating
         //TODO move to build_config
         var camelCaseModuleName = CONFIG.DYNAMIC_META.MODULE_NAME().replace(/-([a-z])/g, function (g) {
@@ -194,16 +193,13 @@ var initGulp = function (gulp, CONFIG) {
     };
 
     // TODO refactor to split "lodash build templating" and angular templating
-
     gulp.task(CONFIG.GULP.DEV_TEMPLATES, function (cb) {
         var targetFolder = CONFIG.DIST.DEV_FOLDER();
-        performTemplating(targetFolder, cb);
+        performTemplating(targetFolder, cb, CONFIG.GULP.DEV);
     });
-
-    // TODO index should not be delivered to prod
     gulp.task(CONFIG.GULP.PROD_TEMPLATES, function (cb) {
         var targetFolder = CONFIG.DIST.DIST_FOLDER();
-        performTemplating(targetFolder, cb);
+        performTemplating(targetFolder, cb, CONFIG.GULP.PROD);
     });
 
 
@@ -258,11 +254,10 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.DEV_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
-
         var envPath = getEnvironmentPath(CONFIG.GULP.DEV);
-        gulp_utils.sass.performCSS(CONFIG.GULP.DEV).pipe(gulp.dest(envPath));
+        gulp_utils.sass.performCSS(CONFIG.GULP.DEV)
+        .pipe(gulp.dest(envPath));
     });
-
     gulp.task(CONFIG.GULP.PROD_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
