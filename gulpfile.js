@@ -44,7 +44,7 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
 
     gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
-    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_COPY_STATIC_FILES, "CONCAT_LIBS",CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, "dev:concatlibs", CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
     // CONFIG.GULP.TS_COMPILE_TESTS, 
     gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
 
@@ -52,7 +52,7 @@ var initGulp = function (gulp, CONFIG) {
         copyResources(getEnvironmentPath(CONFIG.GULP.DEV));
     });
 
-    gulp.task("CONCAT_LIBS", function () {
+    gulp.task("dev:concatlibs", function () {
         plugins.uglify = plugins.noop;
         copyThirdPartyJS(CONFIG.GULP.DEV);
     });
@@ -65,34 +65,35 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.TASK.WATCH, function (cb) {
 
-            plugins.runSequence = require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
-            plugins.gwatch = require(CONFIG.GULP.GULP_WATCH);
-        
-            plugins.gwatch(CONFIG.DIST.DEV_FOLDER() + "**/*.js").on('change', plugins.browserSync.reload);
+        plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
+        plugins.gwatch = plugins.gwatch || require(CONFIG.GULP.GULP_WATCH);
+
+        plugins.gwatch(CONFIG.DIST.DEV_FOLDER() + "**/*.js").on('change', plugins.browserSync.reload);
 // performance: , CONFIG.GULP.PATH.GWATCH_MOCKS
-            plugins.gwatch([CONFIG.GULP.PATH.GWATCH_IMG], function () {
-                plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
-            }, cb);
+        plugins.gwatch([CONFIG.GULP.PATH.GWATCH_IMG], function () {
+            plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+        }, cb);
 
-            // TODO copy also on all changed assets and libs dev:copyStaticFiles
-            plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
-                plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
-            }, cb);
+        // TODO copy also on all changed assets and libs dev:copyStaticFiles
+        plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
+            plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
+        }, cb);
 
-            plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
-                plugins.runSequence([CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TSLINT]);
-            }, cb);
+        console.log("watch on: " + CONFIG.SRC.TS.TS_FILES());
+        plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
+            plugins.runSequence([CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TSLINT]);
+        }, cb);
 
-            plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {
-                plugins.runSequence([CONFIG.GULP.DEV_STYLES]);
-            }, cb);
+        plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {
+            plugins.runSequence([CONFIG.GULP.DEV_STYLES]);
+        }, cb);
 
     });
 
     function copyThirdPartyJS(env) {
 
-        plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
-        plugins.gulpIf = require(CONFIG.GULP.GULPIF);
+        plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
+        plugins.gulpIf = plugins.gulpIf || require(CONFIG.GULP.GULPIF);
 
         // , "bower_components/mobile-boilerplate/js/helper.js",
         gulp.src(CONFIG.SRC.JS.LIBS())
@@ -100,12 +101,12 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
             .pipe(plugins.concat(CONFIG.GULP.PLUGINS_LIBS))
             .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
-/*
-        gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
-            .pipe(partials.errorPipe())
-            .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
-  */
+        /*
+         gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
+         .pipe(partials.errorPipe())
+         .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
+         .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
+         */
     }
 
     // TODO generalize
@@ -138,12 +139,12 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.tslint({configuration: tslintConfig}))
             .pipe(plugins.tslint.report(CONFIG.GULP.VERBOSE));
         /*
-            .pipe(plugins.tslint({
-                formatter: CONFIG.GULP.VERBOSE
-            }))
-            .pipe(plugins.tslint.report());
-        ;
-        */
+         .pipe(plugins.tslint({
+         formatter: CONFIG.GULP.VERBOSE
+         }))
+         .pipe(plugins.tslint.report());
+         ;
+         */
     });
 
     var performTemplating = function (targetFolder, cb, env) {
@@ -164,7 +165,7 @@ var initGulp = function (gulp, CONFIG) {
                 collapseBooleanAttributes: false,
                 collapseBooleanAttributes: false,
                 collapseWhitespace: true,
-                preserveLineBreaks : true,
+                preserveLineBreaks: true,
                 removeAttributeQuotes: false,
                 removeEmptyAttributes: false,
                 removeRedundantAttributes: false,
@@ -248,8 +249,8 @@ var initGulp = function (gulp, CONFIG) {
                     out: CONFIG.DIST.JS.FILES.APP(),
                     typescript: require("typescript"),
                     sortOutput: true,
-                    diagnostics : true,
-                    pretty : true
+                    diagnostics: true,
+                    pretty: true
                     //sourcemap: doUseSourceMaps,
                     //sourceRoot: doUseSourceMaps ? "/" : null,
                     //target: ecmaScriptVersion
@@ -262,7 +263,7 @@ var initGulp = function (gulp, CONFIG) {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
         var envPath = getEnvironmentPath(CONFIG.GULP.DEV);
         gulp_utils.sass.performCSS(CONFIG.GULP.DEV)
-        .pipe(gulp.dest(envPath));
+            .pipe(gulp.dest(envPath));
     });
     gulp.task(CONFIG.GULP.PROD_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
@@ -274,7 +275,7 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task(CONFIG.GULP.TSCOMPILE, function () {
         plugins.uglify = plugins.noop;
         plugins.ngAnnotate = plugins.noop;
-        
+
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         var targetRootFolder = CONFIG.DIST.DEV_FOLDER();
         handleJavaScript(tsSourceFiles)
@@ -282,25 +283,25 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     // TODO use handleJavaScript ()
-/*    
-    gulp.task(CONFIG.GULP.TS_COMPILE_TESTS, function () {
-        console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
-        var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
-        return gulp.src(sourceFiles)
-            .pipe(partials.errorPipe())
-            .pipe(plugins.typescript(
-                {
-                    allowBool: true,
-                    out: CONFIG.GULP.TEST_JS,
-                    // tmpDir : "./ts_tmp",
-                    // sourcemap: true,
-                    // sourceRoot: "/",
-                    target: CONFIG.GULP.ES3
-                }))
-            .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
-    });
-*/
-    
+    /*
+     gulp.task(CONFIG.GULP.TS_COMPILE_TESTS, function () {
+     console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
+     var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
+     return gulp.src(sourceFiles)
+     .pipe(partials.errorPipe())
+     .pipe(plugins.typescript(
+     {
+     allowBool: true,
+     out: CONFIG.GULP.TEST_JS,
+     // tmpDir : "./ts_tmp",
+     // sourcemap: true,
+     // sourceRoot: "/",
+     target: CONFIG.GULP.ES3
+     }))
+     .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
+     });
+     */
+
     gulp.task(CONFIG.GULP.PROD_TSCOMPILE, function () {
         plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
         plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
