@@ -16,18 +16,24 @@ var compileSass = function () {
         .pipe(plugins.sass({
             precision: 8,
             errLogToConsole: true
-          //  outputStyle: "compressed"
+            //  outputStyle: "compressed"
         }))
         ;
 };
 
 var performCSS = function (environment) {
-    plugins.gulpMerge = plugins.gulpMerge || require('gulp-merge');
+    var through = require('through2');
+    plugins.noop = function () {
+        return through.obj();
+    };
     plugins.gulpFilter = plugins.gulpFilter || require('gulp-filter');
     plugins.concat = plugins.concat || require('gulp-concat');
-    plugins.cleanCSS = plugins.cleanCSS || require("gulp-clean-css");
+
     plugins.gulpIf = plugins.gulpIf || require("gulp-if");
 
+    plugins.cleanCSS = (environment === CONFIG.GULP.PROD) ? require("gulp-clean-css") : plugins.noop;
+
+// TODO still required?
     var myFilter = plugins.gulpFilter("**/*.css");
     //  To prevent async issues & writing to temp files, we need to write to memory stream
     return compileSass()
@@ -43,8 +49,7 @@ var performCSS = function (environment) {
                     console.log(details.name + ': ' + details.stats.originalSize);
                     console.log(details.name + ': ' + details.stats.minifiedSize);
                 }
-
-        )))
+            )))
         ;
 };
 
