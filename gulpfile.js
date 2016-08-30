@@ -226,13 +226,53 @@ var initGulp = function (gulp, CONFIG) {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
         plugins.browserSync = require('browser-sync').create();
 
+        plugins.proxy =  plugins.proxy || require('http-proxy-middleware');
+
+        var keepOriginalHostHackFn = function(req) {
+                var originalHost = "http://"+req.headers.host;
+                return originalHost;
+        };
+
+        var pathRewriteFn = function (path, req) {
+            var rewritePath = path.replace(/\..[0-9]+/, '');
+            console.log(rewritePath);
+            return rewritePath;
+        };
+
         plugins.browserSync.init({
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
             },
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
             port: 9000,
-            https: false
+            https: false,
+            middleware: [
+                plugins.proxy("**/*.*.js", {
+                    target : "unused",
+                    pathRewrite: pathRewriteFn,
+                    router: keepOriginalHostHackFn
+                   //, logLevel: 'debug'
+                }),
+                plugins.proxy("**/*.*.css", {
+                    target : "unused",
+                    pathRewrite: pathRewriteFn,
+                    router: keepOriginalHostHackFn
+                    //,logLevel: 'debug'
+                })
+            ]
+            /*
+            rewriteRules: [
+                {
+                    match: /(.*)(app|templates)(\.)([0-9]+)(\.js)/,
+                    fn: function (req, web3, module, filename, dot, version, filextension) {
+                        var redirectUrl = module + filename + dot + filextension;
+                        console.log(redirectUrl);
+                        return redirectUrl;
+                    }
+                }
+            ]
+            */
+
         });
     });
 

@@ -23,26 +23,10 @@ exportObject.performTemplatingAtBuildTime = function (targetFolder) {
         return frameContentFileContent;
     }
 
-    var frameContentFileContent = "";//TODO Not needed for now performPlacingPartialIntoIndexHTML();
-
-    var templateVariables = {
-        CONFIG: {
-            DIST: {
-                JS: {
-                    HEAD_FILES: CONFIG.DIST.JS.HEAD_FILES()
-                },
-                CSS: {
-                    HEAD_FILES: CONFIG.DIST.CSS.HEAD_FILES()
-                }
-            }
-        },
-        frameContent: frameContentFileContent
-    };
-
     gulp.src(CONFIG.DEV.HTML_MAIN())
         .pipe(partials.errorPipe())
         .pipe(
-        plugins.template(templateVariables, {
+        plugins.template(CONFIG.DEV.TEMPLATE_VARIABLES(), {
             interpolate: /<%gulp=([\s\S]+?)%>/g,
             evaluate: /<%gulp([\s\S]+?)%>/g
         })
