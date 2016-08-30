@@ -5,24 +5,23 @@
  * npm install npm-check-updates -g
  */
 
-/**
- * TODO distinguish in file between CI only tasks
- * because of longer initial times by require statements and clean code
- * gulp --gulpfile mygulpfile.js
- */
-
 var pathToBuildConfig = "./config/build_config.js";
 
 var initGulp = function (gulp, CONFIG) {
 
     CONFIG = CONFIG || require(pathToBuildConfig);
 
-    var plugins = {};
 
+    var plugins = {};
+    var through = require('through2');
+    plugins.noop = function () {
+        return through.obj();
+    };
+
+// TODO REVIEW: move to where it is used. prevent double require in multiple files due to performance
     plugins.typescript = require(CONFIG.GULP.TYPESCRIPT);
     plugins.gulpIf = require(CONFIG.GULP.GULPIF);
     plugins.ngHtml2js = require(CONFIG.GULP.HTML2JS);
-
 
     var npms = {};
     var gulp_utils = require(CONFIG.GULP.PATH.CATCH_ERROR_JS);
@@ -41,39 +40,48 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
-    gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]); // use prod only
-    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES,CONFIG.GULP.PROD_STYLES]);
+    gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]);
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
 
-    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);//"openBrowser" "tscopysrc"
-    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
-    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TS_COMPILE_TESTS, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, "dev:concatlibs", CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
+    // CONFIG.GULP.TS_COMPILE_TESTS, 
+    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+
+    gulp.task(CONFIG.GULP.DEV_COPY_STATIC_FILES, function () {
+        copyResources(getEnvironmentPath(CONFIG.GULP.DEV));
+    });
+
+    gulp.task("dev:concatlibs", function () {
+        plugins.uglify = plugins.noop;
+        copyThirdPartyJS(CONFIG.GULP.DEV);
+    });
+
+    gulp.task(CONFIG.GULP.PROD_COPY_STATIC_FILES, function () {
+        plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+        copyThirdPartyJS(CONFIG.GULP.PROD);
+        copyResources(getEnvironmentPath(CONFIG.GULP.PROD));
+    });
 
     gulp.task(CONFIG.GULP.TASK.WATCH, function (cb) {
-        plugins.runSequence = require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
-        plugins.gwatch = require(CONFIG.GULP.GULP_WATCH);
 
-        plugins.gwatch(CONFIG.GULP.PATH.GWATCH_MOCKS, function () {
-            plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
-        }, cb);
-        plugins.gwatch(CONFIG.GULP.PATH.GWATCH_IMG, function () {
+        plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
+        plugins.gwatch = plugins.gwatch || require(CONFIG.GULP.GULP_WATCH);
+
+        plugins.gwatch(CONFIG.DIST.DEV_FOLDER() + "**/*.js").on('change', plugins.browserSync.reload);
+// performance: , CONFIG.GULP.PATH.GWATCH_MOCKS
+        plugins.gwatch([CONFIG.GULP.PATH.GWATCH_IMG], function () {
             plugins.runSequence([CONFIG.GULP.DEV_COPY_STATIC_FILES]);
         }, cb);
 
         // TODO copy also on all changed assets and libs dev:copyStaticFiles
-        plugins.gwatch(CONFIG.DEV.HTML_MAIN(), function () {
-            plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
-        }, cb);
         plugins.gwatch(CONFIG.SRC.ALL_HTML_TEMPLATES(), function () {
             plugins.runSequence([CONFIG.GULP.DEV_TEMPLATES]);
         }, cb);
 
-
+        console.log("watch on: " + CONFIG.SRC.TS.TS_FILES());
         plugins.gwatch(CONFIG.SRC.TS.TS_FILES(), function () {
             plugins.runSequence([CONFIG.GULP.TSCOMPILE, CONFIG.GULP.TSLINT]);
-        }, cb);
-        console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
-        plugins.gwatch(CONFIG.SRC.TS.TS_UNIT_TEST_FILES(), function () {
-            plugins.runSequence([CONFIG.GULP.TS_COMPILE_TESTS]);
         }, cb);
 
         plugins.gwatch(CONFIG.SRC.SASS_FILES(), function () {
@@ -82,18 +90,10 @@ var initGulp = function (gulp, CONFIG) {
 
     });
 
-    gulp.task(CONFIG.GULP.DEV_COPY_STATIC_FILES, function () {
-        copyThirdPartyJS(CONFIG.GULP.DEV);
-        copyResources(getEnvironmentPath(CONFIG.GULP.DEV));
-    });
-    gulp.task(CONFIG.GULP.PROD_COPY_STATIC_FILES, function () {
-        copyThirdPartyJS(CONFIG.GULP.PROD);
-        copyResources(getEnvironmentPath(CONFIG.GULP.PROD));
-    });
-
     function copyThirdPartyJS(env) {
-        plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
-        plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
+
+        plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
+        plugins.gulpIf = plugins.gulpIf || require(CONFIG.GULP.GULPIF);
 
         // , "bower_components/mobile-boilerplate/js/helper.js",
         gulp.src(CONFIG.SRC.JS.LIBS())
@@ -101,11 +101,12 @@ var initGulp = function (gulp, CONFIG) {
             .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
             .pipe(plugins.concat(CONFIG.GULP.PLUGINS_LIBS))
             .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
-
-        gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
-            .pipe(partials.errorPipe())
-            .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
-            .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
+        /*
+         gulp.src(CONFIG.SRC.JS.SINGLE_LIBS())
+         .pipe(partials.errorPipe())
+         .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
+         .pipe(gulp.dest(CONFIG.DEV_FOLDER.DEV_OR_DIST_ROOT(env)));
+         */
     }
 
     // TODO generalize
@@ -116,9 +117,11 @@ var initGulp = function (gulp, CONFIG) {
 
     var copyResources = function (ENV_PATH_ROOT) {
         gulp.src(CONFIG.GULP.PATH.MOCKS)
+            .pipe(partials.errorPipe())
             .pipe(gulp.dest(ENV_PATH_ROOT + CONFIG.GULP.PATH.MOCKS_DEST));
 
         gulp.src(CONFIG.GULP.PATH.IMG)
+            .pipe(partials.errorPipe())
             .pipe(gulp.dest(ENV_PATH_ROOT + CONFIG.GULP.PATH.IMG_DEST));
     };
 
@@ -131,14 +134,20 @@ var initGulp = function (gulp, CONFIG) {
         // TODO cache and move
         var tslintConfig = require(CONFIG.DEV.TSLINT_CONFIG());
 
-
         gulp.src(CONFIG.SRC.TS.TS_FILES())
             .pipe(partials.errorPipe())
             .pipe(plugins.tslint({configuration: tslintConfig}))
             .pipe(plugins.tslint.report(CONFIG.GULP.VERBOSE));
+        /*
+         .pipe(plugins.tslint({
+         formatter: CONFIG.GULP.VERBOSE
+         }))
+         .pipe(plugins.tslint.report());
+         ;
+         */
     });
 
-    var performTemplating = function (targetFolder, cb) {
+    var performTemplating = function (targetFolder, cb, env) {
         // Angular templating
         //TODO move to build_config
         var camelCaseModuleName = CONFIG.DYNAMIC_META.MODULE_NAME().replace(/-([a-z])/g, function (g) {
@@ -148,9 +157,31 @@ var initGulp = function (gulp, CONFIG) {
         //TODO move all angular related stuff to tasks/angular
         // Angular templates, read at runtime
         function angularTemplating(targetFolder) {
-            plugins.concat = require(CONFIG.GULP.GULP_CONCAT);
+            plugins.concat = plugins.concat || require(CONFIG.GULP.GULP_CONCAT);
+            plugins.gulpIf = require(CONFIG.GULP.GULPIF);
+
+            // https://github.com/kangax/html-minifier
+            var hmtlMinConfig = {
+                collapseBooleanAttributes: false,
+                collapseBooleanAttributes: false,
+                collapseWhitespace: true,
+                preserveLineBreaks: true,
+                removeAttributeQuotes: false,
+                removeEmptyAttributes: false,
+                removeRedundantAttributes: false,
+                removeScriptTypeAttributes: false,
+                removeStyleLinkTypeAttributes: false,
+                removeAttributeQuotes: false,
+// TODO e.g. enable this one
+                removeComments: true,
+                removeEmptyAttributes: false,
+                removeRedundantAttributes: false,
+                removeScriptTypeAttributes: false,
+                removeStyleLinkTypeAttributes: false
+            };
 
             gulp.src(CONFIG.SRC.ANGULAR_HTMLS())
+                .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.htmlMin(hmtlMinConfig)))
                 .pipe(plugins.ngHtml2js({
                     moduleName: camelCaseModuleName + CONFIG.GULP.TEMPLATECACHE,
                     prefix: "",
@@ -160,30 +191,30 @@ var initGulp = function (gulp, CONFIG) {
                 }))
                 .pipe(plugins.concat(CONFIG.DIST.JS.FILES.TEMPLATES()))
                 //.pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER()))
-                // TODO distinguish between prod and not
+                .pipe(plugins.gulpIf(env === CONFIG.GULP.PROD, plugins.uglify()))
                 .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 
         }
 
         angularTemplating(targetFolder);
-
-
         require("./tasks/buildtemplating/indexTemplating").performTemplatingAtBuildTime(targetFolder);
-
         cb();
     };
 
     // TODO refactor to split "lodash build templating" and angular templating
-
     gulp.task(CONFIG.GULP.DEV_TEMPLATES, function (cb) {
-        var targetFolder = CONFIG.DIST.DEV_FOLDER();
-        performTemplating(targetFolder, cb);
-    });
+        plugins.htmlMin = plugins.noop;
+        plugins.uglify = plugins.noop;
 
-    // TODO index should not be delivered to prod
+        var targetFolder = CONFIG.DIST.DEV_FOLDER();
+        performTemplating(targetFolder, cb, CONFIG.GULP.DEV);
+    });
     gulp.task(CONFIG.GULP.PROD_TEMPLATES, function (cb) {
+        plugins.htmlMin = plugins.htmlMin || require("gulp-htmlmin");
+        plugins.uglify = plugins.uglify || require(CONFIG.GULP.GULP_UGLIFY);
+
         var targetFolder = CONFIG.DIST.DIST_FOLDER();
-        performTemplating(targetFolder, cb);
+        performTemplating(targetFolder, cb, CONFIG.GULP.PROD);
     });
 
 
@@ -193,13 +224,55 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.DEV_WEBSERVER, function () {
         plugins.browserSync = plugins.browserSync || require(CONFIG.GULP.BROWSER_SYNC);
+        plugins.browserSync = require('browser-sync').create();
 
-        plugins.browserSync.init(CONFIG.DEV.WEBSERVER_FILES_TO_WATCH(), {
+        plugins.proxy =  plugins.proxy || require('http-proxy-middleware');
+
+        var keepOriginalHostHackFn = function(req) {
+                var originalHost = "http://"+req.headers.host;
+                return originalHost;
+        };
+
+        var pathRewriteFn = function (path, req) {
+            var rewritePath = path.replace(/\..[0-9]+/, '');
+            console.log(rewritePath);
+            return rewritePath;
+        };
+
+        plugins.browserSync.init({
             server: {
                 baseDir: CONFIG.DEV.WEBSERVER_BASE_ROOT_DIRS()
             },
             startPath: CONFIG.DEV.WEBSERVER_STARTPATH(),
-            port: 9000
+            port: 9000,
+            https: false,
+            middleware: [
+                plugins.proxy("**/*.*.js", {
+                    target : "unused",
+                    pathRewrite: pathRewriteFn,
+                    router: keepOriginalHostHackFn
+                   //, logLevel: 'debug'
+                }),
+                plugins.proxy("**/*.*.css", {
+                    target : "unused",
+                    pathRewrite: pathRewriteFn,
+                    router: keepOriginalHostHackFn
+                    //,logLevel: 'debug'
+                })
+            ]
+            /*
+            rewriteRules: [
+                {
+                    match: /(.*)(app|templates)(\.)([0-9]+)(\.js)/,
+                    fn: function (req, web3, module, filename, dot, version, filextension) {
+                        var redirectUrl = module + filename + dot + filextension;
+                        console.log(redirectUrl);
+                        return redirectUrl;
+                    }
+                }
+            ]
+            */
+
         });
     });
 
@@ -214,33 +287,35 @@ var initGulp = function (gulp, CONFIG) {
                 {
                     //allowBool: true,
                     out: CONFIG.DIST.JS.FILES.APP(),
-                    typescript:require("typescript"),
-                    sortOutput: true
+                    typescript: require("typescript"),
+                    sortOutput: true,
+                    diagnostics: true,
+                    pretty: true
                     //sourcemap: doUseSourceMaps,
                     //sourceRoot: doUseSourceMaps ? "/" : null,
                     //target: ecmaScriptVersion
-
                 })
-            //    , filters, "longReporter"
-        )
+            )
             ;
     }
 
     gulp.task(CONFIG.GULP.DEV_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
-
         var envPath = getEnvironmentPath(CONFIG.GULP.DEV);
-        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+        gulp_utils.sass.performCSS(CONFIG.GULP.DEV)
+            .pipe(gulp.dest(envPath));
     });
-
     gulp.task(CONFIG.GULP.PROD_STYLES, function () {
         gulp_utils.sass = require(CONFIG.GULP.PATH.SASS);
 
         var envPath = getEnvironmentPath(CONFIG.GULP.PROD);
-        gulp_utils.sass.performCSS().pipe(gulp.dest(envPath));
+        gulp_utils.sass.performCSS(CONFIG.GULP.PROD).pipe(gulp.dest(envPath));
     });
 
     gulp.task(CONFIG.GULP.TSCOMPILE, function () {
+        plugins.uglify = plugins.noop;
+        plugins.ngAnnotate = plugins.noop;
+
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         var targetRootFolder = CONFIG.DIST.DEV_FOLDER();
         handleJavaScript(tsSourceFiles)
@@ -248,34 +323,41 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     // TODO use handleJavaScript ()
-    gulp.task(CONFIG.GULP.TS_COMPILE_TESTS, function () {
-        console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
-        var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
-        return gulp.src(sourceFiles)
-            .pipe(partials.errorPipe())
-            .pipe(plugins.typescript(
-                {
-                    allowBool: true,
-                    out: CONFIG.GULP.TEST_JS,
-                    // tmpDir : "./ts_tmp",
-                    // sourcemap: true,
-                    // sourceRoot: "/",
-                    target: CONFIG.GULP.ES3
-                }))
-            .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
-    });
+    /*
+     gulp.task(CONFIG.GULP.TS_COMPILE_TESTS, function () {
+     console.log(CONFIG.SRC.TS.TS_UNIT_TEST_FILES());
+     var sourceFiles = CONFIG.SRC.TS.TS_UNIT_TEST_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
+     return gulp.src(sourceFiles)
+     .pipe(partials.errorPipe())
+     .pipe(plugins.typescript(
+     {
+     allowBool: true,
+     out: CONFIG.GULP.TEST_JS,
+     // tmpDir : "./ts_tmp",
+     // sourcemap: true,
+     // sourceRoot: "/",
+     target: CONFIG.GULP.ES3
+     }))
+     .pipe(gulp.dest(CONFIG.DEV.UNIT_TESTS_JS_FOLDER()));
+     });
+     */
 
     gulp.task(CONFIG.GULP.PROD_TSCOMPILE, function () {
-        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
         plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
+        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
 
         var tsfiles = CONFIG.SRC.TS.TS_FILES();
-
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
+
         handleJavaScript(tsfiles)
-            .pipe(plugins.ngAnnotate())
+            .pipe(plugins.ngAnnotate({
+                remove: false,
+                add: true,
+                single_quotes: false
+            }))
             .pipe(plugins.uglify(
                 {
+// TODO
                     mangle: false
                 }
             ))

@@ -3,55 +3,54 @@ var gulp = require("gulp");
 var pathToBuildConfig = "../../config/build_config.js";
 var CONFIG = CONFIG || require(pathToBuildConfig);
 
-var svgSrcFiles = CONFIG.SRC.SPRITES_IMG_BASE_FOLDER() + CONFIG.FILE_TYPE_MACHER.SVG();
+//var svgSrcFiles = CONFIG.SRC.SPRITES_IMG_BASE_FOLDER() + CONFIG.FILE_TYPE_MACHER.SVG();
 var plugins = plugins || {};
 
-//var spritesTask = "./sprites";
 
-var compileSass = function (environment) {
+var compileSass = function () {
     /*
      TODO use instead
      */
-    plugins.postcss = plugins.postcss || require('gulp-postcss');
-    // plugins.precss = plugins.precss || require('precss');
-    plugins.autoprefixer = plugins.autoprefixer || require('autoprefixer');
-    //var mqpacker = require('css-mqpacker');
-    //var csswring = require('csswring');
     plugins.sass = plugins.sass || require("gulp-sass");
-    //gulp.src(CONFIG.SRC.THIRDPARTY.FONTS())
-    //    .pipe(gulp.dest(CONFIG.DIST.DEV_FOLDER() + "css"));
-
-    var processors = [
-        plugins.autoprefixer(
-            {
-                browsers: ['last 1 version']
-            }
-        ),
-        // plugins.precss()
-        //  ,mqpacker,
-        //  csswring
-    ];
-
     return gulp.src(CONFIG.SRC.SASS_FILES())
         .pipe(plugins.sass({
             precision: 8,
             errLogToConsole: true
+            //  outputStyle: "compressed"
         }))
-        .pipe(plugins.postcss(processors));
+        ;
 };
 
-var performCSS = function () {
-    plugins.gulpMerge = plugins.gulpMerge || require('gulp-merge');
+var performCSS = function (environment) {
+    var through = require('through2');
+    plugins.noop = function () {
+        return through.obj();
+    };
     plugins.gulpFilter = plugins.gulpFilter || require('gulp-filter');
     plugins.concat = plugins.concat || require('gulp-concat');
 
+    plugins.gulpIf = plugins.gulpIf || require("gulp-if");
+
+    plugins.cleanCSS = (environment === CONFIG.GULP.PROD) ? require("gulp-clean-css") : plugins.noop;
+
+// TODO still required?
     var myFilter = plugins.gulpFilter("**/*.css");
     //  To prevent async issues & writing to temp files, we need to write to memory stream
     return compileSass()
         .pipe(myFilter)
         // concat sprites.css with bootstrap.css
         .pipe(plugins.concat("css/main.css"))
-        .pipe(myFilter.restore());
+        .pipe(myFilter.restore())
+        .pipe(plugins.gulpIf(environment === CONFIG.GULP.PROD,
+            plugins.cleanCSS(
+                {
+                    debug: false
+                }, function (details) {
+                    console.log(details.name + ': ' + details.stats.originalSize);
+                    console.log(details.name + ': ' + details.stats.minifiedSize);
+                }
+            )))
+        ;
 };
 
 
