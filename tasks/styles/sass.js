@@ -44,7 +44,7 @@ var performCSS = function (environment) {
         .pipe(plugins.gulpIf(environment === CONFIG.GULP.PROD,
             plugins.cleanCSS(
                 {
-                    debug: true
+                    debug: false
                 }, function (details) {
                     console.log(details.name + ': ' + details.stats.originalSize);
                     console.log(details.name + ': ' + details.stats.minifiedSize);

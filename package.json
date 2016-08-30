@@ -63,7 +63,7 @@
     "typescript": "1.8.7"
   },
   "devDependencies": {
-    "http-proxy-middleware": "0.16.0",
+    "http-proxy-middleware": "0.17.1",
     "https-proxy-agent": "1.0.0"
   }
 }

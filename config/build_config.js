@@ -191,7 +191,23 @@ var CONFIG = {
             TSLINT_CONFIG: _.constant(__dirname + "/tslint.json"),
             NG_MODULE_DEPS: function () {
                 return [];
-            }
+            },
+            TEMPLATE_VARIABLES : _.constant({
+                CONFIG: {
+                    DIST: {
+                        JS: {
+                            HEAD_FILES: function(version){
+                                return CONFIG.DIST.JS.HEAD_FILES;
+                            }
+                        },
+                        CSS: {
+                            HEAD_FILES: function(version){
+                                return CONFIG.DIST.CSS.HEAD_FILES;
+                            }
+                        }
+                    }
+                }
+            })
         },
         GULP:{
             TYPESCRIPT: "gulp-typescript",
