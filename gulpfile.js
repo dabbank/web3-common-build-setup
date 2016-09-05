@@ -43,10 +43,16 @@ var initGulp = function (gulp, CONFIG) {
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]);
     gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
 
-    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
-    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [CONFIG.GULP.DEV_ONCE, CONFIG.GULP.DEV_COPY_STATIC_FILES, "dev:concatlibs", CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
+    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON, "tscompile"]);
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, ["gulp:once:common", CONFIG.GULP.DEV_COPY_STATIC_FILES, "dev:concatlibs", CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
     // CONFIG.GULP.TS_COMPILE_TESTS, 
-    gulp.task(CONFIG.GULP.DEV_ONCE, [CONFIG.GULP.TSLINT, CONFIG.GULP.TSCOMPILE, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+    gulp.task(CONFIG.GULP.DEV_ONCE, function(){
+        plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
+        plugins.runSequence([CONFIG.GULP.TASK.CLEAN, "gulp:once:common", "tscompile:once"]);
+    });
+
+    gulp.task("gulp:once:common", [CONFIG.GULP.TSLINT, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+
 
     gulp.task(CONFIG.GULP.DEV_COPY_STATIC_FILES, function () {
         copyResources(getEnvironmentPath(CONFIG.GULP.DEV));
@@ -278,7 +284,7 @@ var initGulp = function (gulp, CONFIG) {
 
     // TODO only use one tscompile for dev, tests and prod for compact view
     // TODO refactor to dev:tscompile
-    function handleJavaScript(tsfiles) {
+    function handleJavaScript(tsfiles, isStopOnError) {
         console.log(tsfiles);
 
         return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
@@ -296,6 +302,12 @@ var initGulp = function (gulp, CONFIG) {
                     //target: ecmaScriptVersion
                 })
             )
+            .once("error", function () {
+                if(isStopOnError === true){
+                    console.error("stopping build");
+                    this.once("finish", function(){ process.exit(1);});
+                }
+            })
             ;
     }
 
@@ -312,15 +324,27 @@ var initGulp = function (gulp, CONFIG) {
         gulp_utils.sass.performCSS(CONFIG.GULP.PROD).pipe(gulp.dest(envPath));
     });
 
-    gulp.task(CONFIG.GULP.TSCOMPILE, function () {
+    var tscompileDev = function(isStopOnError){
         plugins.uglify = plugins.noop;
         plugins.ngAnnotate = plugins.noop;
 
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         var targetRootFolder = CONFIG.DIST.DEV_FOLDER();
-        handleJavaScript(tsSourceFiles)
+        return handleJavaScript(tsSourceFiles, isStopOnError)
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
+    };
+
+    gulp.task(CONFIG.GULP.TSCOMPILE, function () {
+        var isStopOnError = false;
+       return tscompileDev(isStopOnError);
     });
+
+    gulp.task("tscompile:once", function () {
+        var isStopOnError = true;
+        return tscompileDev(isStopOnError);
+    });
+
+
 
     // TODO use handleJavaScript ()
     /*
@@ -348,8 +372,9 @@ var initGulp = function (gulp, CONFIG) {
 
         var tsfiles = CONFIG.SRC.TS.TS_FILES();
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
+        var isStopOnError = true;
 
-        handleJavaScript(tsfiles)
+        handleJavaScript(tsfiles, isStopOnError)
             .pipe(plugins.ngAnnotate({
                 remove: false,
                 add: true,
