@@ -48,7 +48,7 @@ var initGulp = function (gulp, CONFIG) {
     // CONFIG.GULP.TS_COMPILE_TESTS, 
     gulp.task(CONFIG.GULP.DEV_ONCE, function(){
         plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
-        plugins.runSequence([CONFIG.GULP.TASK.CLEAN, "gulp:once:common", "tscompile:once"]);
+        plugins.runSequence(["gulp:once:common", "tscompile:once"]);
     });
 
     gulp.task("gulp:once:common", [CONFIG.GULP.TSLINT, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
