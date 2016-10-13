@@ -41,17 +41,33 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]);
-    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [CONFIG.GULP.PROD_TSCOMPILE, CONFIG.GULP.PROD_COPY_STATIC_FILES, CONFIG.GULP.PROD_TEMPLATES, CONFIG.GULP.PROD_STYLES]);
+    gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [
+        CONFIG.GULP.PROD_TSCOMPILE, 
+        CONFIG.GULP.PROD_COPY_STATIC_FILES, 
+        CONFIG.GULP.PROD_TEMPLATES, 
+        CONFIG.GULP.PROD_STYLES
+    ]);
 
-    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON, "tscompile"]);
-    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, ["gulp:once:common", CONFIG.GULP.DEV_COPY_STATIC_FILES, "dev:concatlibs", CONFIG.GULP.DEV_WEBSERVER, CONFIG.GULP.TASK.WATCH]);
-    // CONFIG.GULP.TS_COMPILE_TESTS, 
+    gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
+    gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [
+        "gulp:once:common",
+        "tscompile",
+        CONFIG.GULP.DEV_WEBSERVER,
+        CONFIG.GULP.TASK.WATCH
+    ]);
+
     gulp.task(CONFIG.GULP.DEV_ONCE, function(){
         plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
         plugins.runSequence(["gulp:once:common", "tscompile:once"]);
     });
 
-    gulp.task("gulp:once:common", [CONFIG.GULP.TSLINT, CONFIG.GULP.DEV_TEMPLATES, CONFIG.GULP.DEV_STYLES, CONFIG.GULP.DEV_COPY_STATIC_FILES]);
+    gulp.task("gulp:once:common", [
+        CONFIG.GULP.TSLINT,
+        CONFIG.GULP.DEV_TEMPLATES,
+        CONFIG.GULP.DEV_STYLES,
+        CONFIG.GULP.DEV_COPY_STATIC_FILES,
+        "dev:concatlibs"
+    ]);
 
 
     gulp.task(CONFIG.GULP.DEV_COPY_STATIC_FILES, function () {
