@@ -18,6 +18,10 @@ var initGulp = function (gulp, CONFIG) {
         return through.obj();
     };
 
+    /**
+     * ALIAS NAMES FOR TASKS
+     */
+
 // TODO REVIEW: move to where it is used. prevent double require in multiple files due to performance
     plugins.typescript = require(CONFIG.GULP.TYPESCRIPT);
     plugins.gulpIf = require(CONFIG.GULP.GULPIF);
@@ -28,10 +32,21 @@ var initGulp = function (gulp, CONFIG) {
     var partials = {};
     partials.errorPipe = gulp_utils.errorPipe;
 
-    // Running gulp in command line will execute this:
-    gulp.task(CONFIG.GULP.TASK.DEFAULT, function () {
-        CONFIG.GULP.SHOW_HELP_MESSAGE_TO_CONSOLE();
-    });
+    // monkey patch js http://stackoverflow.com/questions/27161903/how-to-get-task-name-inside-task-in-gulp
+    var currentStartTaskName = undefined;
+    var _gulpStart = gulp.Gulp.prototype.start;
+    gulp.Gulp.prototype.start = function (taskName) {
+        currentStartTaskName = taskName;
+        _gulpStart.apply(this, arguments);
+    };
+
+    var isMangleMinification = function(){
+        console.log("starting task name: " + currentStartTaskName);
+        return (currentStartTaskName !== "dev:once-no-ts-minify")
+            && (currentStartTaskName !== "dev-no-ts-minify")
+            && (currentStartTaskName !== "prod:once-no-ts-minify");
+    };
+
 
     // TODO make usable in async gulp mode. at the moment you have to run it custom by yourself
     gulp.task(CONFIG.GULP.TASK.CLEAN, function (callback) {
@@ -39,16 +54,20 @@ var initGulp = function (gulp, CONFIG) {
         plugins.del([CONFIG.DIST.DEV_FOLDER(), CONFIG.DIST.DIST_FOLDER()], callback);
     });
 
+    gulp.task("prod:once-no-ts-minify", [CONFIG.GULP.PROD_ONCE]);
     gulp.task(CONFIG.GULP.PROD_ONCE, [CONFIG.GULP.PROD]);
     gulp.task(CONFIG.GULP.PROD, [CONFIG.GULP.PROD_FROM_COMMON]);
     gulp.task(CONFIG.GULP.PROD_FROM_COMMON, [
-        CONFIG.GULP.PROD_TSCOMPILE, 
-        CONFIG.GULP.PROD_COPY_STATIC_FILES, 
-        CONFIG.GULP.PROD_TEMPLATES, 
+        CONFIG.GULP.PROD_TSCOMPILE,
+        CONFIG.GULP.PROD_COPY_STATIC_FILES,
+        CONFIG.GULP.PROD_TEMPLATES,
         CONFIG.GULP.PROD_STYLES
     ]);
 
+    gulp.task("dev-no-ts-minify", [CONFIG.GULP.DEV_FROM_COMMON]);
+
     gulp.task(CONFIG.GULP.DEV, [CONFIG.GULP.DEV_FROM_COMMON]);
+
     gulp.task(CONFIG.GULP.DEV_FROM_COMMON, [
         "gulp:once:common",
         "tscompile",
@@ -56,6 +75,7 @@ var initGulp = function (gulp, CONFIG) {
         CONFIG.GULP.TASK.WATCH
     ]);
 
+    gulp.task("dev:once-no-ts-minify", [CONFIG.GULP.DEV_ONCE]);
     gulp.task(CONFIG.GULP.DEV_ONCE, function(){
         plugins.runSequence = plugins.runSequence || require(CONFIG.GULP.PLUGINS_RUNSEQUENCE).use(gulp);
         plugins.runSequence(["gulp:once:common", "tscompile:once"]);
@@ -111,6 +131,8 @@ var initGulp = function (gulp, CONFIG) {
         }, cb);
 
     });
+
+
 
     function copyThirdPartyJS(env) {
 
@@ -251,8 +273,8 @@ var initGulp = function (gulp, CONFIG) {
         plugins.proxy =  plugins.proxy || require('http-proxy-middleware');
 
         var keepOriginalHostHackFn = function(req) {
-                var originalHost = "http://"+req.headers.host;
-                return originalHost;
+            var originalHost = "http://"+req.headers.host;
+            return originalHost;
         };
 
         var pathRewriteFn = function (path, req) {
@@ -273,7 +295,7 @@ var initGulp = function (gulp, CONFIG) {
                     target : "unused",
                     pathRewrite: pathRewriteFn,
                     router: keepOriginalHostHackFn
-                   //, logLevel: 'debug'
+                    //, logLevel: 'debug'
                 }),
                 plugins.proxy("**/*.*.css", {
                     target : "unused",
@@ -283,17 +305,17 @@ var initGulp = function (gulp, CONFIG) {
                 })
             ]
             /*
-            rewriteRules: [
-                {
-                    match: /(.*)(app|templates)(\.)([0-9]+)(\.js)/,
-                    fn: function (req, web3, module, filename, dot, version, filextension) {
-                        var redirectUrl = module + filename + dot + filextension;
-                        console.log(redirectUrl);
-                        return redirectUrl;
-                    }
-                }
-            ]
-            */
+             rewriteRules: [
+             {
+             match: /(.*)(app|templates)(\.)([0-9]+)(\.js)/,
+             fn: function (req, web3, module, filename, dot, version, filextension) {
+             var redirectUrl = module + filename + dot + filextension;
+             console.log(redirectUrl);
+             return redirectUrl;
+             }
+             }
+             ]
+             */
 
         });
     });
@@ -301,9 +323,15 @@ var initGulp = function (gulp, CONFIG) {
     // TODO only use one tscompile for dev, tests and prod for compact view
     // TODO refactor to dev:tscompile
     function handleJavaScript(tsfiles, isStopOnError) {
-        console.log(tsfiles);
+        plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
+        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
 
-        return gulp.src(tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE()))
+        console.log(tsfiles);
+        console.log("minification for tscompile enabled? - " + isMangleMinification());
+
+        return gulp.src(
+            tsfiles.concat(CONFIG.DEV_FOLDER.THIRDPARTY_TS_REFERENCE_FILE())
+        )
             .pipe(partials.errorPipe())
             .pipe(plugins.typescript(
                 {
@@ -318,6 +346,16 @@ var initGulp = function (gulp, CONFIG) {
                     //target: ecmaScriptVersion
                 })
             )
+            .pipe(plugins.ngAnnotate({
+                remove: false,
+                add: true,
+                single_quotes: false
+            }))
+            .pipe(plugins.uglify(
+                {
+                    mangle: isMangleMinification()
+                }
+            ))
             .once("error", function () {
                 if(isStopOnError === true){
                     console.error("stopping build");
@@ -341,8 +379,9 @@ var initGulp = function (gulp, CONFIG) {
     });
 
     var tscompileDev = function(isStopOnError){
-        plugins.uglify = plugins.noop;
-        plugins.ngAnnotate = plugins.noop;
+
+        // plugins.uglify = plugins.noop;
+        // plugins.ngAnnotate = plugins.noop;
 
         var tsSourceFiles = CONFIG.SRC.TS.TS_FILES().concat(CONFIG.SRC.TS.TS_DEFINITIONS());
         var targetRootFolder = CONFIG.DIST.DEV_FOLDER();
@@ -352,7 +391,7 @@ var initGulp = function (gulp, CONFIG) {
 
     gulp.task(CONFIG.GULP.TSCOMPILE, function () {
         var isStopOnError = false;
-       return tscompileDev(isStopOnError);
+        return tscompileDev(isStopOnError);
     });
 
     gulp.task("tscompile:once", function () {
@@ -383,25 +422,12 @@ var initGulp = function (gulp, CONFIG) {
      */
 
     gulp.task(CONFIG.GULP.PROD_TSCOMPILE, function () {
-        plugins.uglify = require(CONFIG.GULP.GULP_UGLIFY);
-        plugins.ngAnnotate = plugins.ngAnnotate || require(CONFIG.GULP.GULP_NG_ANNOTATE);
-
         var tsfiles = CONFIG.SRC.TS.TS_FILES();
         var targetRootFolder = CONFIG.DIST.DIST_FOLDER();
         var isStopOnError = true;
 
         handleJavaScript(tsfiles, isStopOnError)
-            .pipe(plugins.ngAnnotate({
-                remove: false,
-                add: true,
-                single_quotes: false
-            }))
-            .pipe(plugins.uglify(
-                {
-// TODO
-                    mangle: false
-                }
-            ))
+
             .pipe(gulp.dest(targetRootFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
     });
 
