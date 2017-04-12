@@ -32,6 +32,17 @@ exportObject.performTemplatingAtBuildTime = function (targetFolder) {
         })
     )
         .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
+		
+		
+	gulp.src(CONFIG.DEV.HTML_MAIN_EFE())
+        .pipe(partials.errorPipe())
+        .pipe(
+        plugins.template(CONFIG.DEV.TEMPLATE_VARIABLES(), {
+            interpolate: /<%gulp=([\s\S]+?)%>/g,
+            evaluate: /<%gulp([\s\S]+?)%>/g
+        })
+    )
+        .pipe(gulp.dest(targetFolder + CONFIG.DIST.ROOT_PREFIX_PATH()));
 };
 
 

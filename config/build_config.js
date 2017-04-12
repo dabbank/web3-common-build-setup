@@ -155,6 +155,7 @@ var CONFIG = {
         },
         DEV: {
             HTML_MAIN_PAGE:'index.html',
+			HTML_MAIN_PAGE_EFE:'indexEfe.html',
             WEBSERVER_BASE_ROOT_DIRS: function () {
                 return [
                     "./", 					// For Sourcemaps
@@ -172,6 +173,9 @@ var CONFIG = {
             ,
             HTML_MAIN: function () {
                 return UTIL.SRC() + CONFIG.DEV.HTML_MAIN_PAGE;
+            },
+			HTML_MAIN_EFE: function () {
+                return UTIL.SRC() + CONFIG.DEV.HTML_MAIN_PAGE_EFE;
             },
             ABSOLUTE_FOLDER: _.constant(path.resolve()), // used for windows "\\"
             CURRENT_APP: _.constant(path.basename()),
